@@ -121,7 +121,7 @@ def buildSections(model):
             section['sectionID'] = sectionID
             section['name'] = section_object.getName()
             section['externalID'] = section_object.getExternalId()
-            section['speed'] = section_object.getSpeed()
+            section['speed'] = section_object.getSpeed() * MPH_CONSTANT
 
             lanes = section_object.getLanes()
             section['numLanes'] = len(lanes)
