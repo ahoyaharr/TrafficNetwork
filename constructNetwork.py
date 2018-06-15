@@ -1,20 +1,29 @@
 import json
-import graph_tool.all as gt
+
+from graph_tool.all import *
 
 from parser import get_JSON_strings
-from graph_tool.all import *
-from itertools import chain
+
 
 class TrafficNetwork:
     """
     A TrafficNetwork consists of a...
-        - g, graph-tools network
-        - sections, a set of sequences of nodes and edges in the network representing links
+        - graph, a graph-tools network, which stores the following attributes in property maps
+            - edge_weights, the distance traversed by a given edge
+            - node_locations, the geolocation of a given node
+            - node_heading, the bearing that a vehicle which has arrived at a node will have
+            - node_speed_limit, the legal speed limit of a vehicle traveling to a node
+        - sections, a dictionary mapping an Aimsun section ID to the sequence of nodes representing that section
         - junctions, a set of nodes representing the meeting point between sections
     """
 
     def __init__(self, junction_map, section_map):
         self.graph = Graph(directed=True)
+        self.edge_weights = self.graph.new_edge_property("double")
+        self.node_locations = self.graph.new_vertex_property("vector<double>")
+        self.node_heading = self.graph.new_vertex_property("vector<double>")
+        self.node_speed_limit = self.graph.new_vertex_property("double")
+
         self.sections = dict()
         self.junctions = set()
 
@@ -53,7 +62,6 @@ class TrafficNetwork:
                 self.add_entrance(section, junction)
                 self.sections[entrance] = section
 
-
             """ a turn is stored as a dictionary with the following mappings:
             "turnID": unique integer identifier
             "fromLaneRange": the inclusive range of lanes from the origin section for which the turn can be taken
@@ -70,6 +78,9 @@ class TrafficNetwork:
             """
             for turn in junction['turns']:
                 self.connect(turn['originSectionID'], turn['destinationSectionID'])
+
+    def real_distance(self, v1, v2):
+        return None
 
     def connect(self, origin, destination):
         """
@@ -126,12 +137,12 @@ class TrafficNetwork:
         the departure from a junction into a section.
         """
         assert section  # The section may not be an empty sequence.
+
         "Build a property map containing the geolocation, speed, name, and bearing"
         junction_node = self.graph.add_vertex()
         self.graph.add_edge(junction_node, section[0])
         section.insert(0, junction_node)
         return
-
 
 
 def decodeJSON():
@@ -141,7 +152,6 @@ def decodeJSON():
     """
     json_strings = get_JSON_strings()
     return json.loads(json_strings['junction']), json.loads(json_strings['section'])
-
 
 
 junction_map, section_map = decodeJSON()
