@@ -83,9 +83,9 @@ def buildJunctions(model):
             junction['geolocation'] = buildGeolocation(GKCoordinateTranslator(model), JO.getPosition())
             junction['signalized'] = bool(JO.getSignals())
             junction['numEntrances'] = JO.getNumEntranceSections()
-            junction['entrances'] = [o.getId() for o in JO.getEntranceSections()]
+            junction['entrances'] = [str(o.getId()) for o in JO.getEntranceSections()]
             junction['numExits'] = JO.getNumExitSections()
-            junction['exits'] = [o.getId() for o in JO.getExitSections()]
+            junction['exits'] = [str(o.getId()) for o in JO.getExitSections()]
             turns = JO.getTurnings()
             junction['numTurns'] = len(turns)
             junction['turns'] = [buildTurn(turn_object) for turn_object in turns]
