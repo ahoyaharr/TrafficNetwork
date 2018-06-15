@@ -23,18 +23,18 @@ MPH_CONSTANT = 0.62137119 #multiply km/hr to convert to mph
 def buildGeolocation(translator, coordinate_pair):
     """
     Converts an untranslated coordinate pair into a dictionary
-    mapping 'lat'/'lon' -> coordinate value.
+    mapping 'lon'/'lat' -> coordinate value.
     """
     coordinate = translator.toDegrees(coordinate_pair)
-    return {'lat': coordinate.x, 'lon': coordinate.y}
+    return {'lon': coordinate.x, 'lat': coordinate.y}
 
 def getHeading(origin, destination):
     """
     Computes the heading of a section in degrees relative to the x axis
     given the geolocation endpoints of the section as dictionaries of lat and lon.
     """
-    dy = destination['lon'] - origin['lon']
-    dx = destination['lat'] - origin['lat']
+    dy = destination['lat'] - origin['lat']
+    dx = destination['lon'] - origin['lon']
     return math.atan2(dy, dx) * 180 / math.pi
 
 def buildJunctions(model):
