@@ -117,7 +117,7 @@ def buildSections(model):
         numSections += len(types)
         for section_object in types.itervalues():
             section = {}
-            sectionID = section_object.getId()
+            sectionID = str(section_object.getId())
             section['sectionID'] = sectionID
             section['name'] = section_object.getName()
             section['externalID'] = section_object.getExternalId()
