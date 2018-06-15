@@ -49,16 +49,16 @@ def buildJunctions(model):
         Units for turn speed is mph.
         """
         turn_map = {}
-        turn_map['turnID'] = turn_object.getId()
+        turn_map['turnID'] = str(turn_object.getId())
 
         origin = turn_object.getOrigin()
-        turn_map['originSectionID'] = origin.getId()
+        turn_map['originSectionID'] = str(origin.getId())
         origin_object = model.getCatalog().find(origin.getId())
         num_origin_lanes = len(origin_object.getLanes())
         turn_map['fromLaneRange'] = num_origin_lanes - turn_object.getOriginToLane(), num_origin_lanes - turn_object.getOriginFromLane()
 
         destination = turn_object.getDestination()
-        turn_map['destinationSectionID'] = destination.getId()
+        turn_map['destinationSectionID'] = str(destination.getId())
         destination_object = model.getCatalog().find(destination.getId())
         num_destination_lanes = len(destination_object.getLanes())
         turn_map['toLaneRange'] = num_destination_lanes - turn_object.getDestinationToLane(), num_destination_lanes - turn_object.getDestinationFromLane()
@@ -77,7 +77,7 @@ def buildJunctions(model):
         numJunctions += len(types)
         for JO in types.itervalues(): 
             junction = {}
-            junction['junctionID'] = JO.getId()
+            junction['junctionID'] = str(JO.getId())
             junction['name'] = JO.getName()
             junction['externalID'] = JO.getExternalId()
             junction['geolocation'] = buildGeolocation(GKCoordinateTranslator(model), JO.getPosition())
