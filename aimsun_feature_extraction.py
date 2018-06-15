@@ -171,6 +171,6 @@ def separator():
 gui=GKGUISystem.getGUISystem().getActiveGui()
 model = gui.getActiveModel()
 
-path='C:\Users\Serena\connected_corridors\extracted_aimsun_data'
+path='C:\Users\Serena\connected_corridors\TrafficNetwork\data'
 
 buildJSON(model, path)
