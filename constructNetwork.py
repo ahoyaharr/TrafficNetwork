@@ -1,18 +1,19 @@
 import json
+import utils
 
 from graph_tool.all import *
 
 from parser import get_JSON_strings
-
 
 class TrafficNetwork:
     """
     A TrafficNetwork consists of a...
         - graph, a graph-tools network, which stores the following attributes in property maps
             - edge_weights, the distance traversed by a given edge
-            - node_locations, the geolocation of a given node
+            - node_locations, the geolocation of a given node in the format [lon, lat]
             - node_heading, the bearing that a vehicle which has arrived at a node will have
             - node_speed_limit, the legal speed limit of a vehicle traveling to a node
+            - node_id, which is the id of the section to which the node belongs
         - sections, a dictionary mapping an Aimsun section ID to the sequence of nodes representing that section
         - junctions, a set of nodes representing the meeting point between sections
     """
@@ -21,8 +22,9 @@ class TrafficNetwork:
         self.graph = Graph(directed=True)
         self.edge_weights = self.graph.new_edge_property("double")
         self.node_locations = self.graph.new_vertex_property("vector<double>")
-        self.node_heading = self.graph.new_vertex_property("vector<double>")
+        self.node_heading = self.graph.new_vertex_property("double")
         self.node_speed_limit = self.graph.new_vertex_property("double")
+        self.node_id = self.graph.new_vertex_property("string")
 
         self.sections = dict()
         self.junctions = set()
@@ -79,9 +81,6 @@ class TrafficNetwork:
             for turn in junction['turns']:
                 self.connect(turn['originSectionID'], turn['destinationSectionID'])
 
-    def real_distance(self, v1, v2):
-        return None
-
     def connect(self, origin, destination):
         """
         Places an edge between two sections. The geolocation of the connecting junctions
@@ -92,7 +91,8 @@ class TrafficNetwork:
         "TODO: The junction of both origin and destination must be the same. Assert this."
         """A turn transitions a vehicle from the last segment of a the origin to the first
         segment of the destination"""
-        self.graph.add_edge(origin_section[-1], destination_section[0])
+        edge = self.graph.add_edge(origin_section[-1], destination_section[0])
+        self.edge_weights[edge] = 0  # The distance between the same location is 0
         return
 
     def build_section(self, section_map):
@@ -111,10 +111,22 @@ class TrafficNetwork:
         """
         section = []
         for coordinate_map in section_map['shape']:
-            "Build a property map containing the geolocation, speed, name, and bearing"
             vertex = self.graph.add_vertex()
+
+            "Build a property map containing the geolocation, speed, ID, and bearing"
+            self.node_locations[vertex] = [coordinate_map['lon'], coordinate_map['lat']]
+            self.node_id[vertex] = section_map['sectionID']
+            self.node_speed_limit[vertex] = section_map['speed']
+
             if section:
-                self.graph.add_edge(section[-1], vertex)
+                # The first node does not get a heading until the junction node has been added
+                self.node_heading[vertex] = coordinate_map['heading']
+                previous_node = section[-1]
+                edge = self.graph.add_edge(previous_node, vertex)
+                previous_location = self.node_locations[previous_node]
+                current_location = self.node_locations[vertex]
+                self.edge_weights[edge] = utils.real_distance(previous_location, current_location)
+
             section.append(vertex)
         return section
 
@@ -125,9 +137,24 @@ class TrafficNetwork:
         """
         assert section  # The section may not be an empty sequence.
 
-        "Build a property map containing the geolocation, speed, name, and bearing"
+        previous_node = section[-1]
         junction_node = self.graph.add_vertex()
-        self.graph.add_edge(section[-1], junction_node)
+
+        "Build a property map containing the geolocation, speed, ID, and bearing"
+        self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
+        self.node_id[junction_node] = junction['junctionID']
+        self.node_speed_limit[junction_node] = self.node_speed_limit[previous_node]
+
+        # Look up geolocation of previous node, then compute heading to junction
+        previous_node_geolocation = self.node_locations[previous_node]
+        previous_node_geolocation_mapping = {'lon': previous_node_geolocation[0], 'lat': previous_node_geolocation[1]}
+        self.node_heading[junction_node] = utils.getHeading(previous_node_geolocation_mapping, junction['geolocation'])
+
+        edge = self.graph.add_edge(previous_node, junction_node)
+        previous_node_location = self.node_locations[previous_node]
+        junction_node_location = self.node_locations[junction_node]
+        self.edge_weights[edge] = utils.real_distance(previous_node_location, junction_node_location)
+
         section.append(junction_node)
         return
 
@@ -138,9 +165,24 @@ class TrafficNetwork:
         """
         assert section  # The section may not be an empty sequence.
 
-        "Build a property map containing the geolocation, speed, name, and bearing"
+        next_node = section[0]
         junction_node = self.graph.add_vertex()
-        self.graph.add_edge(junction_node, section[0])
+
+        "Build a property map containing the geolocation, speed, ID, and bearing"
+        self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
+        self.node_id[junction_node] = junction['junctionID']
+        self.node_speed_limit[junction_node] = self.node_speed_limit[next_node]
+
+        # Look up geolocation of next node, then compute heading to junction
+        next_node_geolocation = self.node_locations[next_node]
+        next_node_geolocation_mapping = {'lon': next_node_geolocation[0], 'lat': next_node_geolocation[1]}
+        self.node_heading[next_node] = utils.getHeading(junction['geolocation'], next_node_geolocation_mapping)
+
+        edge = self.graph.add_edge(junction_node, next_node)
+        next_node_location = self.node_locations[next_node]
+        junction_node_location = self.node_locations[junction_node]
+        self.edge_weights[edge] = utils.real_distance(junction_node_location, next_node_location)
+
         section.insert(0, junction_node)
         return
 
