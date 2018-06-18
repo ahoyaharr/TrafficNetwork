@@ -1,9 +1,7 @@
-import json
-import utils
-
 from graph_tool.all import *
 
-from parser import get_JSON_strings
+import utils
+
 
 class TrafficNetwork:
     """
@@ -27,7 +25,6 @@ class TrafficNetwork:
         self.node_id = self.graph.new_vertex_property("string")
 
         self.sections = dict()
-        self.junctions = set()
 
         """ a junction is stored as a dictionary with the following mappings:
           "junctionID": unique integer identifier 
@@ -186,17 +183,12 @@ class TrafficNetwork:
         section.insert(0, junction_node)
         return
 
+    def get_exit_junction(self, id):
 
-def decodeJSON():
-    """
-    Returns a mapping of sections and junctions from a
-    JSON string.
-    """
-    json_strings = get_JSON_strings()
-    return json.loads(json_strings['junction']), json.loads(json_strings['section'])
+        return self.sections[id][-1]
 
+    def get_entrance_junction(self, id):
+        return self.sections[id][0]
 
-junction_map, section_map = decodeJSON()
-network = TrafficNetwork(junction_map, section_map)
-
-graph_draw(network.graph)
+    def get_junctions(self, section_id):
+        return self.get_entrance_junction(section_id), self.get_exit_junction(section_id)
