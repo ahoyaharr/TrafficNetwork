@@ -1,4 +1,8 @@
+import json
 import math
+
+from parser import get_JSON_strings
+
 
 def real_distance(cp1, cp2):
     """
@@ -22,6 +26,17 @@ def real_distance(cp1, cp2):
 
     return earth_radius * c * KM_TO_FEET_CONST
 
+def get_radius(point, distance, vertices):
+    """
+    Computes an area around a point in a shape on k vertices.
+    :param point: A list in the form [lon, lat]
+    :param distance: The length of the radius in feet
+    :param vertices: The number of points in the shape.
+    :return: A list of lists containing vertices number of coordinates.
+    """
+    # TODO: Fill in body
+    return
+
 
 def getHeading(origin, destination):
     """
@@ -31,3 +46,12 @@ def getHeading(origin, destination):
     dy = destination['lat'] - origin['lat']
     dx = destination['lon'] - origin['lon']
     return math.atan2(dy, dx) * 180 / math.pi
+
+
+def decodeJSON():
+    """
+    Returns a mapping of sections and junctions from a
+    JSON string.
+    """
+    json_strings = get_JSON_strings()
+    return json.loads(json_strings['junction']), json.loads(json_strings['section'])
