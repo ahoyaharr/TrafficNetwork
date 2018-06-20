@@ -1,7 +1,7 @@
 import json
 import math
 
-from parser import get_JSON_strings
+from util.parser import get_JSON_strings
 
 
 def real_distance(cp1, cp2):
@@ -26,26 +26,6 @@ def real_distance(cp1, cp2):
 
     return earth_radius * c * KM_TO_FEET_CONST
 
-def get_radius(point, distance, vertices):
-    """
-    Computes an area around a point in a shape on k vertices.
-    :param point: A list in the form [lon, lat].
-    :param distance: The length of the radius in feet.
-    :param vertices: The number of points in the shape.
-    :return: A list of lists containing vertices number of coordinates.
-    """
-    # TODO: Fill in body
-    return
-
-def find_hourglass(point, angle, initial_width, distance):
-    """
-    Defines a search area given a point.
-    :param point: A list in the form [lat, lon].
-    :param angle: How much the search area widens with distance.
-    :param initial_width: How wide the search area should start at.
-    :param distance: The length of a line which bisects a triangle.
-    :return: A set of points which defines a polygon.
-    """
 
 def getHeading(origin, destination):
     """
@@ -64,12 +44,3 @@ def decodeJSON():
     """
     json_strings = get_JSON_strings()
     return json.loads(json_strings['junction']), json.loads(json_strings['section'])
-
-
-def lat_lon_to_rad(point):
-    """
-    Converts a WGS-84 point to
-    :param point: A list in the form [lat, lon]
-    :return: A tuple in the form, (x, y)
-    """
-    return point[0], math.log(math.tan(math.pi/4 + point[1]/2))

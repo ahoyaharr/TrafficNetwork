@@ -1,6 +1,6 @@
 from graph_tool.all import *
 
-import utils
+from util import utils
 
 
 class TrafficNetwork:
@@ -184,7 +184,6 @@ class TrafficNetwork:
         return
 
     def get_exit_junction(self, id):
-
         return self.sections[id][-1]
 
     def get_entrance_junction(self, id):
