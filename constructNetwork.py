@@ -78,10 +78,6 @@ class TrafficNetwork:
             for turn in junction['turns']:
                 self.connect(turn['originSectionID'], turn['destinationSectionID'])
 
-
-
-
-
     def find_knn(self, point, num_results=20):
         v = self.graph.add_vertex()
         self.node_locations[v] = point
