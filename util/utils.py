@@ -1,17 +1,29 @@
 import json
 import math
+import time
 
 from util.parser import get_JSON_strings
 
 
+def time_fn(fn, iterations, args):
+    start = time.time()
+    for _ in range(iterations):
+        fn(*args)
+    t = (time.time() - start)
+    print('time taken: %s' % t)
+    return int(t)
+
+
 def real_distance(cp1, cp2):
     """
-    Computes the distance in feet between two points.
+    >>> 995.0 <= real_distance([-118.121438, 34.179766], [-118.118132, 34.179786]) <= 1000.0
+    True
+
+    Computes the distance in feet between two points using the Haversine Formula.
     :param cp1: A list in the form [lon1, lat1]
     :param cp2: A list in the form [lon2, lat2]
-    :return: the distance in meters between two coordinates.
+    :return: the distance in feet between two coordinates.
     """
-
     earth_radius = 6373
     KM_TO_FEET_CONST = 3280.84
 
