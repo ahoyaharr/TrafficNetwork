@@ -78,13 +78,6 @@ class TrafficNetwork:
             for turn in junction['turns']:
                 self.connect(turn['originSectionID'], turn['destinationSectionID'])
 
-    def find_knn(self, point, num_results=20):
-        v = self.graph.add_vertex()
-        self.node_locations[v] = point
-        result = list(self.tree.search(v, num_results))
-        self.graph.remove_vertex(v, fast=True)
-        return result
-
     def connect(self, origin, destination):
         """
         Places an edge between two sections. The geolocation of the connecting junctions
