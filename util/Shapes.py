@@ -5,7 +5,6 @@ class Point:
     """
     Represents a WGS-84 GPS point.
     """
-
     def __init__(self, lon, lat, bearing=None):
         self.lon = float(lon)
         self.lon_as_rad = radians(self.lon)
