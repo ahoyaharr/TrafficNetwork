@@ -43,10 +43,13 @@ def getHeading(origin, destination):
     """
     Computes the heading of a section in degrees relative to the x axis
     given the geolocation endpoints of the section as dictionaries of lat and lon.
+
+    Returns the heading in the same coordinate system as the HERE Probe Data (0' = North).
     """
     dy = destination['lat'] - origin['lat']
     dx = destination['lon'] - origin['lon']
-    return math.atan2(dy, dx) * 180 / math.pi
+    angle = math.atan2(dy, dx) * 180 / math.pi  # Coordinate System: 0' = East, Expands CCW
+    return (-angle + 90) % 360  # Coordinate System: 0' = North, Expands CW 
 
 
 def decodeJSON():
@@ -56,3 +59,5 @@ def decodeJSON():
     """
     json_strings = get_JSON_strings()
     return json.loads(json_strings['junction']), json.loads(json_strings['section'])
+
+
