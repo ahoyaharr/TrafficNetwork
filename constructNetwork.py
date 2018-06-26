@@ -183,6 +183,26 @@ class TrafficNetwork:
         section.insert(0, junction_node)
         return
 
+    def split_edges(self, maximum_distance):
+        """
+        Increases the number of nodes in the graph by adding a new node between each edge which carries a weight
+        greater than maximum_distance. The new node inherits the attributes of a non-junction node.
+        :param maximum_distance:
+        :return:
+        """
+        return
+
+    def merge_edges(self, minimum_distance, maximum_angle_delta):
+        """
+        Decreases the number of nodes in the graph by recursively evaluating a section, merging sets of
+        nodes and edges which do not span a minimum_distance and have an angular change less than
+        maximum_angle_delta.
+        :param minimum_distance:
+        :param maximum_angle_delta:
+        :return:
+        """
+        return
+
     def get_exit_junction(self, id):
         return self.sections[id][-1]
 
@@ -191,3 +211,9 @@ class TrafficNetwork:
 
     def get_junctions(self, section_id):
         return self.get_entrance_junction(section_id), self.get_exit_junction(section_id)
+
+    def vertex_distance(self, v1, v2):
+        """
+        Computes the real distance between two vertices, given their vertex IDs.
+        """
+        return utils.real_distance(self.node_locations[v1], self.node_locations[v2])
