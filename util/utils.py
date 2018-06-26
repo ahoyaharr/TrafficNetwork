@@ -49,7 +49,7 @@ def getHeading(origin, destination):
     dy = destination['lat'] - origin['lat']
     dx = destination['lon'] - origin['lon']
     angle = math.atan2(dy, dx) * 180 / math.pi  # Coordinate System: 0' = East, Expands CCW
-    return (-angle + 90) % 360  # Coordinate System: 0' = North, Expands CW 
+    return (-angle + 90) % 360  # Coordinate System: 0' = North, Expands CW
 
 
 def decodeJSON():
