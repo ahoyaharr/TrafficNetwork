@@ -1,8 +1,3 @@
-import math
-
-import util.Shapes
-
-
 class SearchArea:
     def __init__(self, initial_point, distance, initial_width, fanout=90):
         """
@@ -33,27 +28,6 @@ class SearchArea:
 
         return [left_offset, left_positive_fanout, right_positive_fanout,
                 right_offset, right_negative_fanout, left_negative_fanout]
-
-    @staticmethod
-    def offset_point(point, distance, bearing):
-        """
-        Given a point, find a new point which is d distance away pointing at bearing b.
-        :param point: A point object
-        :param distance: The distance that the point should be offset, in km.
-        :param bearing: The direction that the point should be offset at, in radians.
-        :return: A point with the new coordinates, pointing in the direction that it was offset
-        """
-        assert point.bearing is not None
-
-        R = 6378.1  # The radius of the world, in km.
-
-        lat2 = math.asin(math.sin(point.lat_as_rad) * math.cos(distance / R) +
-                         math.cos(point.lat_as_rad) * math.sin(distance / R) * math.cos(bearing))
-
-        lon2 = point.lon_as_rad + math.atan2(math.sin(bearing) * math.sin(distance / R) * math.cos(point.lat_as_rad),
-                                             math.cos(distance / R) - math.sin(point.lat_as_rad) * math.sin(lat2))
-
-        return util.Shapes.Point(math.degrees(lon2), math.degrees(lat2), point.bearing + bearing)
 
     def contains(self, point):
         """
