@@ -1,3 +1,5 @@
+from util.utils import offset_point
+
 class SearchArea:
     def __init__(self, initial_point, distance, initial_width, fanout=90):
         """
@@ -19,12 +21,12 @@ class SearchArea:
         """
         offset_to_fanout = 90 - self.fanout
 
-        left_offset = self.offset_point(self.initial_point, self.initial_width, 90)
-        left_positive_fanout = self.offset_point(left_offset, self.distance, -offset_to_fanout)
-        left_negative_fanout = self.offset_point(left_offset, self.distance, offset_to_fanout)
-        right_offset = self.offset_point(self.initial_point, self.initial_width, -90)
-        right_positive_fanout = self.offset_point(right_offset, self.distance, offset_to_fanout)
-        right_negative_fanout = self.offset_point(right_offset, self.distance, -offset_to_fanout)
+        left_offset = offset_point(self.initial_point, self.initial_width, 90)
+        left_positive_fanout = offset_point(left_offset, self.distance, -offset_to_fanout)
+        left_negative_fanout = offset_point(left_offset, self.distance, offset_to_fanout)
+        right_offset = offset_point(self.initial_point, self.initial_width, -90)
+        right_positive_fanout = offset_point(right_offset, self.distance, offset_to_fanout)
+        right_negative_fanout = offset_point(right_offset, self.distance, -offset_to_fanout)
 
         return [left_offset, left_positive_fanout, right_positive_fanout,
                 right_offset, right_negative_fanout, left_negative_fanout]
