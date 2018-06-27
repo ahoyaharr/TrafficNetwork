@@ -35,10 +35,17 @@ def getHeading(origin, destination):
     East centric gives the heading where 0 degrees points east and then increments counter-clockwise,
     and North centric gives the heading where 0 degrees points north and then increments clockwise.
     """
-    dy = destination['lat'] - origin['lat']
-    dx = destination['lon'] - origin['lon']
-    east_centric = math.atan2(dy, dx) * 180 / math.pi
+    dlon = math.radians(destination['lon'])
+    dlat = math.radians(destination['lat'])
+    olon = math.radians(origin['lon'])
+    olat = math.radians(origin['lat'])
+
+    y = math.sin(dlon - olon) * math.cos(dlat)
+    x = math.cos(olat) * math.sin(dlat) - \
+        math.sin(olat) * math.cos(dlat) * math.cos(dlon - olon)
+    east_centric = math.atan2(y, x) * 180 / math.pi
     north_centric = (-east_centric + 90) % 360
+
     return north_centric
 
 def buildJunctions(model):
