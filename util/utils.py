@@ -25,7 +25,7 @@ def real_distance(cp1, cp2):
     :param cp2: A list in the form [lon2, lat2]
     :return: the distance in feet between two coordinates.
     """
-    earth_radius = 6373
+    earth_radius = 6378.1
     KM_TO_FEET_CONST = 3280.84
 
     cp1 = list(map(math.radians, cp1))
@@ -67,7 +67,7 @@ def offset_point(point, distance, bearing):
     Given a point, find a new point which is d distance away pointing at bearing b.
     :param point: A point object
     :param distance: The distance that the point should be offset, in feet.
-    :param bearing: The direction that the point should be offset at, in degrees.
+    :param bearing: The angle of projection from the original point.
     :return: A point with the new coordinates, pointing in the direction that it was offset
     """
     assert point.bearing is not None
@@ -75,6 +75,9 @@ def offset_point(point, distance, bearing):
     bearing = math.radians(bearing)
 
     R = 6378.1  # The radius of the world, in km.
+    KM_TO_FEET_CONST = 3280.84  # The number of feet in a KM
+
+    distance = distance / KM_TO_FEET_CONST
 
     lat2 = math.asin(math.sin(point.lat_as_rad) * math.cos(distance / R) +
                      math.cos(point.lat_as_rad) * math.sin(distance / R) * math.cos(bearing))
@@ -82,4 +85,4 @@ def offset_point(point, distance, bearing):
     lon2 = point.lon_as_rad + math.atan2(math.sin(bearing) * math.sin(distance / R) * math.cos(point.lat_as_rad),
                                          math.cos(distance / R) - math.sin(point.lat_as_rad) * math.sin(lat2))
 
-    return util.Shapes.Point(math.degrees(lon2), math.degrees(lat2), point.bearing + math.degrees(bearing))
+    return util.Shapes.Point(math.degrees(lon2), math.degrees(lat2), math.degrees(bearing))
