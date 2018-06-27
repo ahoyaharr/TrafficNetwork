@@ -26,6 +26,7 @@ class TrafficNetwork:
         self.node_id = self.graph.new_vertex_property("string")
 
         self.sections = dict()
+        self.junctions = set()
 
         """ a junction is stored as a dictionary with the following mappings:
           "junctionID": unique integer identifier 
@@ -137,6 +138,7 @@ class TrafficNetwork:
 
         previous_node = section[-1]
         junction_node = self.graph.add_vertex()
+        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes
 
         "Build a property map containing the geolocation, speed, ID, and bearing"
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
@@ -165,6 +167,7 @@ class TrafficNetwork:
 
         next_node = section[0]
         junction_node = self.graph.add_vertex()
+        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes
 
         "Build a property map containing the geolocation, speed, ID, and bearing"
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
@@ -191,6 +194,7 @@ class TrafficNetwork:
         :param maximum_distance:
         :return:
         """
+
         return
 
     def merge_edges(self, minimum_distance, maximum_angle_delta):
