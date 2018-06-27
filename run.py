@@ -3,21 +3,31 @@ import util.Shapes
 import util.SearchArea
 import util.m_tree
 import util.parser as parser
+import util.export as export
 import mapMatch
 from constructNetwork import TrafficNetwork
 from graph_tool.all import *
 import collections
 import itertools
+#
+p = util.Shapes.Point(-118.141671408,34.169072391, 0)
+#
+#
+# p_offset = util.utils.offset_point(p, .025, 0)
+#
+# print(p_offset)
+header = ['lon', 'lat', 'speed', 'heading']
 
-data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st.csv', subdirectory='data')
-
+# data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st.csv', subdirectory='data')
+#
 junction_map, section_map = util.utils.decodeJSON()
 network = TrafficNetwork(junction_map, section_map)
 
-graph_draw(network.graph)
-
-mm = mapMatch.MapMatch(network, util.m_tree.MTree, mapMatch.first_score, mapMatch.first_evaluation, data)
-print(mm.match())
+export.export(header, network.export(), 'network')
+#
+#
+# mm = mapMatch.MapMatch(network, util.m_tree.MTree, mapMatch.first_score, mapMatch.first_evaluation, data)
+# print(mm.match())
 #
 # #
 #
