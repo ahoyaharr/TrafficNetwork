@@ -1,4 +1,5 @@
 from graph_tool.all import *
+import math
 
 from util import utils
 from util import Shapes as shapes
@@ -191,10 +192,45 @@ class TrafficNetwork:
         """
         Increases the number of nodes in the graph by adding a new node between each edge which carries a weight
         greater than maximum_distance. The new node inherits the attributes of a non-junction node.
-        :param maximum_distance:
+        :param maximum_distance: The maximum allowable length of an edge, in feet.
         :return:
         """
 
+        for vertices in self.sections.values():  # Iterate through each section
+            for source in vertices:  # A section is composed of vertices. Each vertex is a source for it's edges.
+                edges_to_remove = []  # Maintain a list of edges which need to be removed.
+                for edge in self.graph.get_out_edges(source):  # For each edge where the vertex is a source,
+                    if self.edge_weights[edge] > maximum_distance:  # Determine if an edge should be split.
+                        target = edge[1]  # edge is a numpy array of [sourceID, targetID, edgeID]
+                        edges_to_remove.append(edge)  # If an edge is split, the original edge should be removed.
+
+                        new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance))
+                        new_edge_distance = self.edge_weights[edge] / new_edge_count
+                        current_point = shapes.Point.from_list(list(self.node_locations[source]) + [self.node_heading[target]])
+                        previous_vertex = source
+                        for _ in range(new_edge_count):
+                            current_point = utils.offset_point(current_point, new_edge_distance, current_point.bearing)
+                            current_vertex = self.graph.add_vertex()
+                            """ Populate the property map for the new vertex. Inherit values from the target node,
+                            unless the target node is a junction node. Then inherit values from the source. """
+                            self.node_locations[current_vertex] = current_point.as_list()
+                            self.node_heading[current_vertex] = current_point.bearing
+                            property_vertex = source if target not in self.junctions else target
+                            self.node_speed_limit[current_vertex] = self.node_speed_limit[property_vertex]
+                            self.node_id[current_vertex] = self.node_id[property_vertex]
+
+                            """ Create an edge between the previous vertex and the newly created vertex, 
+                            and update the edge weight property map. """
+                            current_edge = self.graph.add_edge(previous_vertex, current_vertex)
+                            self.edge_weights[current_edge] = new_edge_distance
+
+                            previous_vertex = current_vertex  # The current edge becomes the previous edge in the next step.
+
+                        """ Create an edge between the last new vertex that was created, and the target of the
+                        original edge which is being split and update the property map. """
+                        self.edge_weights[self.graph.add_edge(previous_vertex, target)] = new_edge_distance
+
+                map(self.graph.remove_edge, edges_to_remove)
         return
 
     def merge_edges(self, minimum_distance, maximum_angle_delta):
