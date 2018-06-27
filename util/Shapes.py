@@ -45,6 +45,12 @@ class Point:
     def as_list(self):
         return [self.lon, self.lat]
 
+    def as_tuple(self):
+        return self.lon, self.lat, self.bearing
+
+    def as_dict(self):
+        return {'lon': self.lon, 'lat': self.lat, 'bearing': self.bearing}
+
 
 class DataPoint(Point):
     def __init__(self, timestamp, speed, lon, lat, bearing):
@@ -52,8 +58,29 @@ class DataPoint(Point):
         self.speed = float(speed)
         self.timestamp = timestamp
 
+    @classmethod
+    def from_dict(cls, d):
+        """
+        :param d: A dictionary with the entries timestamp, speed, lat, lon, heading
+        """
+        return cls(d['timestamp'], d['speed'], d['lon'], d['lat'], d['heading'])
+
+    def as_dict(self):
+        """
+        Returns a dictionary containing the attributes of the DataPoint. Not yet used.
+        :return:
+        """
+        return {'timestamp':self.timestamp, 'speed': self.speed, 'lon': self.lon,
+                'lat': self.lat, 'bearing': self.bearing}
+
     @staticmethod
     def convert_dataset(subdirectory, filename):
+        """
+        Converts a CSV of HERE probe data into a list of DataPoints.
+        :param subdirectory:
+        :param filename:
+        :return:
+        """
         points = []
         for line in read_file(s=filename, dir=subdirectory).splitlines():
             line = line.split(',')
