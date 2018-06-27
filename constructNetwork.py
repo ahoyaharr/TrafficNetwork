@@ -1,6 +1,7 @@
 from graph_tool.all import *
 
 from util import utils
+from util import Shapes as shapes
 
 
 class TrafficNetwork:
@@ -217,3 +218,13 @@ class TrafficNetwork:
         Computes the real distance between two vertices, given their vertex IDs.
         """
         return utils.real_distance(self.node_locations[v1], self.node_locations[v2])
+
+    def export(self):
+        """
+        Returns a list of dictionaries containing the attributes of each vertex.
+        :return:
+        """
+        return [{'speed': self.node_speed_limit[v],
+                 'lon': self.node_locations[v][0],
+                 'lat': self.node_locations[v][1],
+                 'heading': self.node_heading[v]} for v in self.graph.vertices()]
