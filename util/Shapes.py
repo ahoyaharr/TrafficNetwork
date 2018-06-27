@@ -14,7 +14,7 @@ class Point:
             self.bearing = float(bearing)
         except TypeError:
             pass
-        assert self.validate_point()
+        assert self.validate_point(), str(self.lon) + ', ' + str(self.lat) + ', ' + str(self.bearing)
 
     def __repr__(self):
         return str(self.lon) + ',' + str(self.lat) + ' @ ' + str(self.bearing) + '\n'
