@@ -196,12 +196,14 @@ class TrafficNetwork:
         :return:
         """
 
-        for vertices in self.sections.values():  # Iterate through each section
-            for source in vertices:  # A section is composed of vertices. Each vertex is a source for it's edges.
-                edges_to_remove = []  # Maintain a list of edges which need to be removed.
-                for edge in self.graph.get_out_edges(source):  # For each edge where the vertex is a source,
-                    if self.edge_weights[edge] > maximum_distance:  # Determine if an edge should be split.
-                        target = edge[1]  # edge is a numpy array of [sourceID, targetID, edgeID]
+        """ Iterate through the vertices of each section. For each vertex v, evaluate edges for which v is a source.
+        If an edge of weight greater than maximum_distance, then split it. """
+        for vertices in self.sections.values():
+            for source in vertices:
+                edges_to_remove = []  # If an edge is split, it will need to be removed.
+                for edge in self.graph.get_out_edges(source):
+                    if self.edge_weights[edge] > maximum_distance:
+                        target = edge[1]  # edge is a numpy array of [source, target, edge]. Select target.
                         edges_to_remove.append(edge)  # If an edge is split, the original edge should be removed.
 
                         new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance)) - 1
@@ -224,7 +226,8 @@ class TrafficNetwork:
                             current_edge = self.graph.add_edge(previous_vertex, current_vertex)
                             self.edge_weights[current_edge] = new_edge_distance
 
-                            previous_vertex = current_vertex  # The current edge becomes the previous edge in the next step.
+                            # The current vertex becomes the previous vertex in the next step.
+                            previous_vertex = current_vertex
 
                         """ Create an edge between the last new vertex that was created, and the target of the
                         original edge which is being split and update the property map. """
