@@ -1,10 +1,13 @@
 from math import radians
+
 from util.parser import read_file
+
 
 class Point:
     """
     Represents a WGS-84 GPS point.
     """
+
     def __init__(self, lon, lat, bearing=None):
         self.lon = float(lon)
         self.lon_as_rad = radians(self.lon)
@@ -53,6 +56,10 @@ class Point:
 
 
 class DataPoint(Point):
+    """
+    Represents a HERE Probe Data Point. Inherits from Point.
+    """
+
     def __init__(self, timestamp, speed, lon, lat, bearing):
         Point.__init__(self, lon, lat, bearing)
         self.speed = float(speed)
@@ -70,7 +77,7 @@ class DataPoint(Point):
         Returns a dictionary containing the attributes of the DataPoint. Not yet used.
         :return:
         """
-        return {'timestamp':self.timestamp, 'speed': self.speed, 'lon': self.lon,
+        return {'timestamp': self.timestamp, 'speed': self.speed, 'lon': self.lon,
                 'lat': self.lat, 'bearing': self.bearing}
 
     @staticmethod
