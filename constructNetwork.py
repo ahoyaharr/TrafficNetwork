@@ -13,7 +13,7 @@ class TrafficNetwork:
             - node_locations, the geolocation of a given node in the format [lon, lat]
             - node_heading, the bearing that a vehicle which has arrived at a node will have
             - node_speed_limit, the legal speed limit of a vehicle traveling to a node
-            - node_id, which is the id of the section to which the node belongs
+            - node_id, the id of the section to which the node belongs
         - sections, a dictionary mapping an Aimsun section ID to the sequence of nodes representing that section
         - junctions, a set of nodes representing the meeting point between sections
     """
@@ -29,17 +29,19 @@ class TrafficNetwork:
         self.sections = dict()
         self.junctions = set()
 
-        """ a junction is stored as a dictionary with the following mappings:
-          "junctionID": unique integer identifier 
-          "name": string of the name of the current junction
-          "signalized": whether or not there is a traffic signal at this junction
-          "geolocation": a dictionary mapping 'lat' and 'lon to a double value
-          "numEntrances": the number of sections which enter this junction
-          "entrances": list of all sectionIDs entering this junction
-          "numExits": the number of sections which leave this junction
-          "exits": list of all sectionIDs exiting this junction
-          "numTurns": the number ways there are to exit this junction
-          "turns": a list of dictionaries representing turns """
+        """
+        A junction is stored as a dictionary with the following mappings:
+          junctionID: unique integer identifier 
+          name: string of the name of the current junction
+          signalized: boolean for whether or not there is a traffic signal at this junction
+          geolocation: a dictionary mapping 'lat' and 'lon' to a double value
+          numEntrances: the number of sections which enter this junction
+          entrances: list of all sectionIDs entering this junction
+          numExits: the number of sections which exit this junction
+          exits: list of all sectionIDs exiting this junction
+          numTurns: the number of ways there are to exit this junction
+          turns: a list of dictionaries representing turns, further explained below.
+        """
         for junction in junction_map['junctions']:
             """
             For each section, create the section if it does not exist. Otherwise, perform a lookup on the section.
@@ -64,18 +66,19 @@ class TrafficNetwork:
                 self.add_entrance(section, junction)
                 self.sections[entrance] = section
 
-            """ a turn is stored as a dictionary with the following mappings:
-            "turnID": unique integer identifier
-            "fromLaneRange": the inclusive range of lanes from the origin section for which the turn can be taken
-            "toLaneRange": the inclusive range of lanes to the destination section for which the turn will arrive at
-            "originSectionID": the section ID of the origin
-            "destinationSectionID": the section ID of the destination
-            "speed": the average speed at which the turn is taken
-            "angle": the angle at which a turn is taken
             """
-
+            A turn is stored as a dictionary with the following mappings:
+            turnID: unique integer identifier
+            fromLaneRange: the inclusive range of lanes from the origin section for which the turn can be taken
+            toLaneRange: the inclusive range of lanes to the destination section for which the turn will arrive at
+            originSectionID: the section ID of the origin
+            destinationSectionID: the section ID of the destination
+            speed: the average speed at which the turn is taken in km/hr
+            angle: the angle at which a turn is taken
             """
-            Each turn defined a connection between two sections.
+            "TODO: convert turn speed to mph"
+            """
+            Each turn defines a connection between two sections.
             For each turn, connect the two relevant sections. 
             """
             for turn in junction['turns']:
@@ -89,37 +92,36 @@ class TrafficNetwork:
         origin_section = self.sections[origin]
         destination_section = self.sections[destination]
         "TODO: The junction of both origin and destination must be the same. Assert this."
-        """A turn transitions a vehicle from the last segment of a the origin to the first
-        segment of the destination"""
+        """A turn transitions a vehicle from the last segment of the origin to the first
+        segment of the destination."""
         edge = self.graph.add_edge(origin_section[-1], destination_section[0])
-        self.edge_weights[edge] = 0  # The distance between the same location is 0
+        self.edge_weights[edge] = 0  # The distance between the same location is 0.
         return
 
     def build_section(self, section_map):
         """
-        Constructs the nodes and edges of a section using
-        a mapping of section data, and returns a reference to those
-        nodes and edges in a sequence. Does not construct junction nodes/edges.
-        """
-        """ a section is stored as a dictionary with the following mappings:
-        "lanes": a list of dictionaries containing mappings to information about each lane
-        "name": a string containing the name of the section
-        "numPoints": the number of points that defines the shape of a segment
-        "shape": a list of dictionaries containing information about the lat/lon/bearing of each point
-        "numLanes": the number of lanes in the section
-        "speed": the average speed of the section in miles/hr
+        Constructs the nodes and edges of a section using a mapping of section data, and returns a
+        reference to those nodes and edges in a sequence. Does not construct junction nodes/edges.
+        
+        A section is stored as a dictionary with the following mappings:
+        lanes: a list of dictionaries containing mappings to information about each lane
+        name: a string containing the name of the section
+        numPoints: the number of points that defines the shape of a segment
+        shape: a list of dictionaries containing information about the lat/lon/bearing of each point
+        numLanes: the number of lanes in the section
+        speed: the average speed of the section in miles/hr
         """
         section = []
         for coordinate_map in section_map['shape']:
             vertex = self.graph.add_vertex()
 
-            "Build a property map containing the geolocation, speed, ID, and bearing"
+            # Build a property map containing the geolocation, speed, ID, and bearing.
             self.node_locations[vertex] = [coordinate_map['lon'], coordinate_map['lat']]
             self.node_id[vertex] = section_map['sectionID']
             self.node_speed_limit[vertex] = section_map['speed']
 
             if section:
-                # The first node does not get a heading until the junction node has been added
+                # The first node does not get a heading until the junction node has been added.
                 self.node_heading[vertex] = coordinate_map['heading']
                 previous_node = section[-1]
                 edge = self.graph.add_edge(previous_node, vertex)
@@ -139,18 +141,19 @@ class TrafficNetwork:
 
         previous_node = section[-1]
         junction_node = self.graph.add_vertex()
-        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes
+        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes.
 
-        "Build a property map containing the geolocation, speed, ID, and bearing"
+        # Update property map with the node's geolocation, speed, ID, and bearing.
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
         self.node_id[junction_node] = junction['junctionID']
         self.node_speed_limit[junction_node] = self.node_speed_limit[previous_node]
 
-        # Look up geolocation of previous node, then compute heading to junction
+        # Look up geolocation of previous node, then compute heading to junction.
         previous_node_geolocation = self.node_locations[previous_node]
         previous_node_geolocation_mapping = {'lon': previous_node_geolocation[0], 'lat': previous_node_geolocation[1]}
         self.node_heading[junction_node] = utils.getHeading(previous_node_geolocation_mapping, junction['geolocation'])
 
+        # Connect the section and junction node with an edge, weighted by the distance between them.
         edge = self.graph.add_edge(previous_node, junction_node)
         previous_node_location = self.node_locations[previous_node]
         junction_node_location = self.node_locations[junction_node]
@@ -168,18 +171,19 @@ class TrafficNetwork:
 
         next_node = section[0]
         junction_node = self.graph.add_vertex()
-        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes
+        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes.
 
         "Build a property map containing the geolocation, speed, ID, and bearing"
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
         self.node_id[junction_node] = junction['junctionID']
         self.node_speed_limit[junction_node] = self.node_speed_limit[next_node]
 
-        # Look up geolocation of next node, then compute heading to junction
+        # Look up geolocation of next node, then compute heading to junction.
         next_node_geolocation = self.node_locations[next_node]
         next_node_geolocation_mapping = {'lon': next_node_geolocation[0], 'lat': next_node_geolocation[1]}
         self.node_heading[next_node] = utils.getHeading(junction['geolocation'], next_node_geolocation_mapping)
 
+        # Connect the junction and section node with an edge, weighted by the distance between them.
         edge = self.graph.add_edge(junction_node, next_node)
         next_node_location = self.node_locations[next_node]
         junction_node_location = self.node_locations[junction_node]
@@ -190,18 +194,17 @@ class TrafficNetwork:
 
     def split_edges(self, maximum_distance):
         """
-        Increases the number of nodes in the graph by adding a new node between each edge which carries a weight
-        greater than maximum_distance. The new node inherits the attributes of a non-junction node.
+        Increases the number of nodes in the graph by adding new nodes between each edge which carries a weight
+        greater than maximum_distance. The new nodes inherit the attributes of the destination node, unless
+        it is a junction in which case they inherit from the source node.
         :param maximum_distance: The maximum allowable length of an edge, in feet.
-        :return:
         """
-
-        for vertices in self.sections.values():  # Iterate through each section
-            for source in vertices:  # A section is composed of vertices. Each vertex is a source for it's edges.
+        for vertices in self.sections.values():  # Iterate through each section.
+            for source in vertices:  # A section is composed of vertices. Each vertex is a source for its edges.
                 edges_to_remove = []  # Maintain a list of edges which need to be removed.
                 for edge in self.graph.get_out_edges(source):  # For each edge where the vertex is a source,
                     if self.edge_weights[edge] > maximum_distance:  # Determine if an edge should be split.
-                        target = edge[1]  # edge is a numpy array of [sourceID, targetID, edgeID]
+                        target = edge[1]  # edge is a numpy array of [sourceID, targetID, edgeID].
                         edges_to_remove.append(edge)  # If an edge is split, the original edge should be removed.
 
                         new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance)) - 1
@@ -226,8 +229,8 @@ class TrafficNetwork:
 
                             previous_vertex = current_vertex  # The current edge becomes the previous edge in the next step.
 
-                        """ Create an edge between the last new vertex that was created, and the target of the
-                        original edge which is being split and update the property map. """
+                        """ Create an edge between the last new vertex that was created and the target of the
+                        original edge which is being split, and update the property map. """
                         self.edge_weights[self.graph.add_edge(previous_vertex, target)] = new_edge_distance
 
                 map(self.graph.remove_edge, edges_to_remove)
@@ -240,17 +243,28 @@ class TrafficNetwork:
         maximum_angle_delta.
         :param minimum_distance:
         :param maximum_angle_delta:
-        :return:
         """
         return
 
     def get_exit_junction(self, id):
+        """
+        Given a section ID, returns the exit junction. 
+        :param id: A section ID.
+        """
         return self.sections[id][-1]
 
     def get_entrance_junction(self, id):
+        """
+        Given a section ID, returns the exit junction. 
+        :param id: A section ID.
+        """
         return self.sections[id][0]
 
     def get_junctions(self, section_id):
+        """
+        Given a section ID, returns the entrance and exit junctions. 
+        :param section_id: The ID of the section to get the junctions for.
+        """
         return self.get_entrance_junction(section_id), self.get_exit_junction(section_id)
 
     def vertex_distance(self, v1, v2):
@@ -262,7 +276,6 @@ class TrafficNetwork:
     def export(self):
         """
         Returns a list of dictionaries containing the attributes of each vertex.
-        :return:
         """
         return [{'speed': self.node_speed_limit[v],
                  'lon': self.node_locations[v][0],
