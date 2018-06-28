@@ -1,12 +1,18 @@
 import json
 import math
 import time
-
 import util.Shapes
+
 from util.parser import get_JSON_strings
 
 
 def time_fn(fn, iterations, args):
+    """
+    Records the time it takes to run function fn on args iterations times.
+    :param fn: The function to be executed.
+    :param iterations: The number of times to run the function.
+    :param args: The arguments to be passed into function fn.
+    """
     start = time.time()
     for _ in range(iterations):
         fn(*args)
@@ -21,9 +27,9 @@ def real_distance(cp1, cp2):
     True
 
     Computes the distance in feet between two points using the Haversine Formula.
-    :param cp1: A list in the form [lon1, lat1]
-    :param cp2: A list in the form [lon2, lat2]
-    :return: the distance in feet between two coordinates.
+    :param cp1: A list in the form [lon1, lat1].
+    :param cp2: A list in the form [lon2, lat2].
+    :return: The distance in feet between two coordinates.
     """
     earth_radius = 6378.1
     KM_TO_FEET_CONST = 3280.84
@@ -59,11 +65,9 @@ def get_heading(origin, destination):
     return (prenormalized + 360) % 360  # map result to [0, 360) degrees
 
 
-
 def decode_json():
     """
-    Returns a mapping of sections and junctions from a
-    JSON string.
+    Returns a mapping of sections and junctions from a JSON string.
     """
     json_strings = get_JSON_strings()
     return json.loads(json_strings['junction']), json.loads(json_strings['section'])
@@ -71,11 +75,11 @@ def decode_json():
 
 def offset_point(point, distance, bearing):
     """
-    Given a point, find a new point which is d distance away pointing at bearing b.
-    :param point: A point object
+    Given a point, find a new point which is distance away in direction of bearing.
+    :param point: A point object.
     :param distance: The distance that the point should be offset, in feet.
     :param bearing: The angle of projection from the original point.
-    :return: A point with the new coordinates, pointing in the direction that it was offset
+    :return: A point with the new coordinates, pointing in the direction that it was offset.
     """
     assert point.bearing is not None
 
