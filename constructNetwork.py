@@ -151,7 +151,7 @@ class TrafficNetwork:
         # Look up geolocation of previous node, then compute heading to junction.
         previous_node_geolocation = self.node_locations[previous_node]
         previous_node_geolocation_mapping = {'lon': previous_node_geolocation[0], 'lat': previous_node_geolocation[1]}
-        self.node_heading[junction_node] = utils.getHeading(previous_node_geolocation_mapping, junction['geolocation'])
+        self.node_heading[junction_node] = utils.get_heading(previous_node_geolocation_mapping, junction['geolocation'])
 
         # Connect the section and junction node with an edge, weighted by the distance between them.
         edge = self.graph.add_edge(previous_node, junction_node)
@@ -181,7 +181,7 @@ class TrafficNetwork:
         # Look up geolocation of next node, then compute heading to junction.
         next_node_geolocation = self.node_locations[next_node]
         next_node_geolocation_mapping = {'lon': next_node_geolocation[0], 'lat': next_node_geolocation[1]}
-        self.node_heading[next_node] = utils.getHeading(junction['geolocation'], next_node_geolocation_mapping)
+        self.node_heading[next_node] = utils.get_heading(junction['geolocation'], next_node_geolocation_mapping)
 
         # Connect the junction and section node with an edge, weighted by the distance between them.
         edge = self.graph.add_edge(junction_node, next_node)

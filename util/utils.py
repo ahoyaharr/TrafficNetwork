@@ -40,27 +40,27 @@ def real_distance(cp1, cp2):
     return earth_radius * c * KM_TO_FEET_CONST
 
 
-def getHeading(origin, destination):
+def get_heading(origin, destination):
     """
     Computes the heading between the origin and destination in degrees given the geolocation endpoints
     of the section as dictionaries of lat and lon.
     Zero degrees is true north, increments clockwise.
     """
-    dlon = math.radians(destination['lon'])
-    dlat = math.radians(destination['lat'])
-    olon = math.radians(origin['lon'])
-    olat = math.radians(origin['lat'])
+    d_lon = math.radians(destination['lon'])
+    d_lat = math.radians(destination['lat'])
+    o_lon = math.radians(origin['lon'])
+    o_lat = math.radians(origin['lat'])
 
-    y = math.sin(dlon - olon) * math.cos(dlat)
-    x = math.cos(olat) * math.sin(dlat) - \
-        math.sin(olat) * math.cos(dlat) * math.cos(dlon - olon)
+    y = math.sin(d_lon - o_lon) * math.cos(d_lat)
+    x = math.cos(o_lat) * math.sin(d_lat) - \
+        math.sin(o_lat) * math.cos(d_lat) * math.cos(d_lon - o_lon)
     prenormalized = math.atan2(y, x) * 180 / math.pi
 
-    return (prenormalized + 360) % 360 # map result to [0, 360) degrees
+    return (prenormalized + 360) % 360  # map result to [0, 360) degrees
 
 
 
-def decodeJSON():
+def decode_json():
     """
     Returns a mapping of sections and junctions from a
     JSON string.
