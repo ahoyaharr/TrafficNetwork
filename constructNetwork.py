@@ -204,7 +204,7 @@ class TrafficNetwork:
                         target = edge[1]  # edge is a numpy array of [sourceID, targetID, edgeID]
                         edges_to_remove.append(edge)  # If an edge is split, the original edge should be removed.
 
-                        new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance))
+                        new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance)) - 1
                         new_edge_distance = self.edge_weights[edge] / new_edge_count
                         current_point = shapes.Point.from_list(list(self.node_locations[source]) + [self.node_heading[target]])
                         previous_vertex = source
