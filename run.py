@@ -22,8 +22,9 @@ header = ['lon', 'lat', 'speed', 'heading']
 #
 junction_map, section_map = util.utils.decodeJSON()
 network = TrafficNetwork(junction_map, section_map)
+network.split_edges(200)
 
-export.export(header, network.export(), 'network')
+export.export(header, network.export(), 'edge_split_test_1')
 #
 #
 # mm = mapMatch.MapMatch(network, util.m_tree.MTree, mapMatch.first_score, mapMatch.first_evaluation, data)
