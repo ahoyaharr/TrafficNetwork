@@ -20,7 +20,7 @@ SYSTEM_TYPE = 'windows'
 MPH_CONSTANT = 0.62137119 #multiply km/hr to convert to mph
 
 
-def buildGeolocation(translator, coordinate_pair):
+def build_geolocation(translator, coordinate_pair):
     """
     Converts an untranslated coordinate pair into a dictionary
     mapping 'lon'/'lat' -> coordinate value.
@@ -28,7 +28,7 @@ def buildGeolocation(translator, coordinate_pair):
     coordinate = translator.toDegrees(coordinate_pair)
     return {'lon': coordinate.x, 'lat': coordinate.y}
 
-def getHeading(origin, destination):
+def get_heading(origin, destination):
     """
     Computes the heading between the origin and destination in degrees given the geolocation endpoints
     of the section as dictionaries of lat and lon.
@@ -46,15 +46,15 @@ def getHeading(origin, destination):
 
     return (prenormalized + 360) % 360 # map result to [0, 360) degrees
 
-def buildJunctions(model):
+def build_junctions(model):
     """
     Builds a dictionary containing information about the junctions
     in a model.
     """
-    def buildTurn(turn_object):
+    def build_turn(turn_object):
         """
         Builds a dictionary containing information about a turn object.
-        Inherits model from parent function buildJunctions.
+        Inherits model from parent function build_junctions.
         Units for turn speed is mph.
         """
         turn_map = {}
@@ -89,7 +89,7 @@ def buildJunctions(model):
             junction['junctionID'] = str(JO.getId())
             junction['name'] = JO.getName()
             junction['externalID'] = JO.getExternalId()
-            junction['geolocation'] = buildGeolocation(GKCoordinateTranslator(model), JO.getPosition())
+            junction['geolocation'] = build_geolocation(GKCoordinateTranslator(model), JO.getPosition())
             junction['signalized'] = bool(JO.getSignals())
             junction['numEntrances'] = JO.getNumEntranceSections()
             junction['entrances'] = [str(o.getId()) for o in JO.getEntranceSections()]
@@ -97,14 +97,14 @@ def buildJunctions(model):
             junction['exits'] = [str(o.getId()) for o in JO.getExitSections()]
             turns = JO.getTurnings()
             junction['numTurns'] = len(turns)
-            junction['turns'] = [buildTurn(turn_object) for turn_object in turns]
+            junction['turns'] = [build_turn(turn_object) for turn_object in turns]
             junctions.append(junction)
     print 'Finished building junction map'
     return {'numJunctions': numJunctions, 'junctions': junctions}
 
 
-def buildSections(model):
-    def buildLane(lane_index):
+def build_sections(model):
+    def build_lane(lane_index):
         """
         Returns a dictionary mapping keys to the values in a lane object.
         Units for length and width are feet and speed is mph.
@@ -134,19 +134,19 @@ def buildSections(model):
 
             lanes = section_object.getLanes()
             section['numLanes'] = len(lanes)
-            section['lanes'] = [buildLane(lane_index) for lane_index in range(len(lanes))]
+            section['lanes'] = [build_lane(lane_index) for lane_index in range(len(lanes))]
             shape = section_object.calculatePolyline()
             section['numPoints'] = len(shape)
 
             translator = GKCoordinateTranslator(model)
-            section['shape'] = [buildGeolocation(translator, point) for point in shape]
+            section['shape'] = [build_geolocation(translator, point) for point in shape]
 
             previous = section['shape'][0]
             previous['heading'] = None
 
             for i in range (1, len(shape)):
                 curr = section['shape'][i]
-                curr['heading'] = getHeading(previous, curr)
+                curr['heading'] = get_heading(previous, curr)
                 previous = curr
 
             sections[sectionID] = section
@@ -155,9 +155,9 @@ def buildSections(model):
 
 
 
-def buildJSON(model, path):
-    junction_map = buildJunctions(model)
-    section_map = buildSections(model)
+def build_json(model, path):
+    junction_map = build_junctions(model)
+    section_map = build_sections(model)
 
     junction_json = json.dumps(junction_map, indent=2)
     section_json = json.dumps(section_map, indent=2)
@@ -182,4 +182,4 @@ model = gui.getActiveModel()
 
 path='C:\Users\Serena\connected_corridors\TrafficNetwork\data'
 
-buildJSON(model, path)
+build_json(model, path)
