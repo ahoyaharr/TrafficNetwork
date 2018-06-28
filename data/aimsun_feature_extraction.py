@@ -30,16 +30,21 @@ def buildGeolocation(translator, coordinate_pair):
 
 def getHeading(origin, destination):
     """
-    Computes the heading of a section in degrees relative to the x axis
-    given the geolocation endpoints of the section as dictionaries of lat and lon.
-    East centric gives the heading where 0 degrees points east and then increments counter-clockwise,
-    and North centric gives the heading where 0 degrees points north and then increments clockwise.
+    Computes the heading between the origin and destination in degrees given the geolocation endpoints
+    of the section as dictionaries of lat and lon.
+    Zero degrees is true north, increments clockwise.
     """
-    dy = destination['lat'] - origin['lat']
-    dx = destination['lon'] - origin['lon']
-    east_centric = math.atan2(dy, dx) * 180 / math.pi
-    north_centric = (-east_centric + 90) % 360
-    return north_centric
+    dlon = math.radians(destination['lon'])
+    dlat = math.radians(destination['lat'])
+    olon = math.radians(origin['lon'])
+    olat = math.radians(origin['lat'])
+
+    y = math.sin(dlon - olon) * math.cos(dlat)
+    x = math.cos(olat) * math.sin(dlat) - \
+        math.sin(olat) * math.cos(dlat) * math.cos(dlon - olon)
+    prenormalized = math.atan2(y, x) * 180 / math.pi
+
+    return (prenormalized + 360) % 360 # map result to [0, 360) degrees
 
 def buildJunctions(model):
     """
