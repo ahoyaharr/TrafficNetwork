@@ -97,3 +97,14 @@ def offset_point(point, distance, bearing):
                                          math.cos(distance / R) - math.sin(point.lat_as_rad) * math.sin(lat2))
 
     return util.Shapes.Point(math.degrees(lon2), math.degrees(lat2), math.degrees(bearing))
+
+
+def angle_delta(a1, a2):
+    """
+    Computes the difference between two angles, accounting for overflow.
+    :param a1: An angle
+    :param a2: A different angle
+    :return: The change between a1 and a2
+    """
+    # TODO: Determine if the change in angle is a positive or negative change
+    return min((a1 - a2 + 360) % 360, (a2 - a1 + 360) % 360)
