@@ -242,7 +242,8 @@ class TrafficNetwork:
                 map(self.graph.remove_edge, edges_to_remove)
         return
 
-    def merge_edges(self, section, maximum_distance, maximum_angle_delta):
+
+    def merge_edges(self, section, maximum_distance, maximum_angle_delta, greedy=True):
         """
         Decreases the number of nodes in the graph by recursively evaluating a section, merging sets of
         nodes and edges which do not span a minimum_distance and have an angular change less than
@@ -250,7 +251,8 @@ class TrafficNetwork:
         :param section: a list of vertices representing a section
         :param maximum_distance:
         :param maximum_angle_delta:
-        :param a tuple containing a list of edges to add, and a list of edges to remove.
+        :param greedy: the strategy used for selecting the partition
+        :return: a tuple containing a list of edges to add, and a list of edges to remove.
 
         """
         def total_edge_angle(e1, e2):
@@ -327,7 +329,7 @@ class TrafficNetwork:
             return [e1[0], e2[1], None]  # A merged edge has not been added, so it has no ID.
 
 
-        def partition(edges, to_add=[], to_remove=[]):
+        def dp_partition(edges, to_add=[], to_remove=[]):
             """
             Recursively searches for the optimal partition of edges.
             :param edges:
@@ -343,17 +345,17 @@ class TrafficNetwork:
             """ Possibility 1: Do not merge the first two edges. 
                 Result: Partition on all of the remaining edges. Add the current edge to to_add, 
                         and the current edge to to_remove. """
-            #print('skip edge')
-            skip_edge = partition(edges[1:], to_add + [edges[0]], to_remove + [edges[0][2]])
+            print('skip edge', len(edges), len(to_add), len(to_remove))
+            skip_edge = dp_partition(edges[1:], to_add + [edges[0]], to_remove + [edges[0][2]])
 
             """ Possibility 2: Merge the first two edges. 
                 Result: Partition the newly merged edge with all of the remaining edges, we add 
                         nothing to to_add because the merged edge may be merged again, 
                         and we remove the two edges which were merged. """
             try:
-                #print('merge edge')
+                #print('merge edge', len(edges), len(to_add), len(to_remove))
                 #print('current:', edges, 'next_call:', [merge(edges[0], edges[1])] + edges[2:])
-                merge_edge = partition([merge(edges[0], edges[1])] + edges[2:], to_add,
+                merge_edge = dp_partition([merge(edges[0], edges[1])] + edges[2:], to_add,
                                    to_remove + [edges[0][2]] + [edges[1][2]])
             except (AssertionError, IndexError) as exception:
                 """ Either the first two edges in the pool cannot be merged, or there is only one edge remaining
@@ -364,25 +366,45 @@ class TrafficNetwork:
             """ Return the result which adds the fewest edges. """
             return min(merge_edge, skip_edge, key=lambda pair: len(pair[0]))
 
+        def greedy_partition(edges):
+            current_subsection = edges[0]  # A list of edges forming the current subsection
+            to_add = []
+            to_remove = [current_subsection[2]]  # The first edge will always be removed.
+
+            # Consider the edges past the first edge only.
+            for edge in edges[1:]:
+                if permissible(current_subsection, edge):
+                    current_subsection[1] = edge[1]  # Update the target
+                    to_remove.append(edge[2])  # We merged, so the edge needs to be removed.
+                else:
+                    to_add.append(current_subsection)
+                    current_subsection = edge
+
+            return to_add, to_remove
+
         l = len(section)
         section_edges = [[list(edge) for edge in self.graph.get_out_edges(source) if edge[1] == target][0]
                          for source, target in zip(section[0:l-1], section[1:l])]
 
         #print('####', [str(v) for v in section], '\n####', section_edges)
 
-        to_add, to_remove = partition(section_edges)
+        to_add, to_remove = greedy_partition(section_edges) if greedy else dp_partition(section_edges)
 
         for edge in to_add:
             new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
             self.edge_weights[new_edge] = sum(map(lambda pair: self.edge_weights[self.graph.edge(pair[0], pair[1])],
                                                   zip(section[edge[0]:edge[1]], section[int(edge[0]+1):int(edge[1]+1)])))
 
+        #print(to_add, to_remove)
+
         """ Remove each edge_id in to_remove from the section. """
         map(lambda edge_id: self.graph.remove_edge(edge_id), to_remove)
 
     def equalize_node_density(self, maximum_distance, maximum_angle_delta):
+        print('start')
         for section in self.sections.values():
             self.merge_edges(section, maximum_distance, maximum_angle_delta)
+        print('end')
         return
 
     def get_exit_junction(self, id):
