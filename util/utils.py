@@ -101,10 +101,11 @@ def offset_point(point, distance, bearing):
 
 def angle_delta(a1, a2):
     """
-    Computes the difference between two angles, accounting for overflow.
-    :param a1: An angle
-    :param a2: A different angle
-    :return: The change between a1 and a2
+    Computes the difference between two angles, accounting for overflow. A positive result indicates
+    change in the clockwise direction. Negative indicates counter-clockwise.
+    :param a1: The angle of the first edge.
+    :param a2: The angle of the second edge.
+    :return: The change between a1 and a2.
     """
-    # TODO: Determine if the change in angle is a positive or negative change
-    return min((a1 - a2 + 360) % 360, (a2 - a1 + 360) % 360)
+    assert a1 <= 360 and a2 <= 360
+    return (a2 - a1) % 360 if (a2 - a1) % 360 <= 180 else -((a1 - a2) % 360)
