@@ -20,11 +20,12 @@ header = ['lon', 'lat', 'speed', 'heading']
 
 # data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st.csv', subdirectory='data')
 #
-junction_map, section_map = util.utils.decodeJSON()
+junction_map, section_map = util.utils.decode_json()
 network = TrafficNetwork(junction_map, section_map)
 network.split_edges(200)
+#network.equalize_node_density(200, 40)
 
-export.export(header, network.export(), 'edge_split_test_1')
+export.export(header, network.export(), 'node_density_test3')
 #
 #
 # mm = mapMatch.MapMatch(network, util.m_tree.MTree, mapMatch.first_score, mapMatch.first_evaluation, data)
