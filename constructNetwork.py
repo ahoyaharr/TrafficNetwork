@@ -399,7 +399,7 @@ class TrafficNetwork:
                                                   zip(section[edge[0]:edge[1]],
                                                       section[int(edge[0] + 1):int(edge[1] + 1)])))
 
-        vertices.sort(reverse=True)
+        vertices.sort(reverse=True)  # Removing vertices is destructive. Remove the largest indices first.
         for vertex in vertices:
             self.graph.remove_vertex(vertex)
         return
