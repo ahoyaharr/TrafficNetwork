@@ -281,8 +281,11 @@ class TrafficNetwork:
             :param edge: An edge represented as a list.
             :return: The total length.
             """
+            source = section.index(edge[0])
+            target = section.index(edge[1])
+
             return sum(map(lambda pair: self.edge_weights[self.graph.edge(pair[0], pair[1])],
-                           zip(section[edge[0]:edge[1]], section[int(edge[0] + 1):int(edge[1] + 1)])))
+                           zip(section[source:target], section[int(source + 1):int(target + 1)])))
 
         def total_edge_length(e1, e2):
             """
@@ -386,13 +389,13 @@ class TrafficNetwork:
         :param greedy: Whether or not the greedy algorithm should be used. (Default: True. DP Takes too long.)
         :return: The change in the number of nodes
         """
+        """ Split edges which are very long. """
         self.split_edges(maximum_distance)
 
         vertices_to_remove = []
         edges_to_add = []
-        s = list(self.sections.values())
-        s.sort()
-        for section in s:
+        """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
+        for section in self.sections.values():
             new_edges, redundant_vertices = self.merge_edges(section, maximum_distance, maximum_angle_delta, greedy)
             vertices_to_remove.extend(redundant_vertices)
             edges_to_add.extend(new_edges)
