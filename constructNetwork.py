@@ -275,28 +275,23 @@ class TrafficNetwork:
             return abs(sum(map(f, zip(section[e1_source + 1:e2_target], section[e1_source + 2:e2_target + 1]))))
 
         def cumulative_edge_length(edge):
+            """
+            Returns the length of an edge, possibly a compound edge, by summing the weights of the edges
+            between each pair of adjacent vertices.
+            :param edge: An edge represented as a list.
+            :return: The total length.
+            """
             return sum(map(lambda pair: self.edge_weights[self.graph.edge(pair[0], pair[1])],
                            zip(section[edge[0]:edge[1]], section[int(edge[0] + 1):int(edge[1] + 1)])))
 
         def total_edge_length(e1, e2):
             """
             Compute the total distance traversed by two adjacent edges, either of which might be compound edges.
-            :param e1:
-            :param e2:
+            :param e1: An edge represented as a list.
+            :param e2: An adjacent edge, represented as a list.
             :return:
             """
             return cumulative_edge_length(e1) + cumulative_edge_length(e2)
-            e1_source = section.index(e1[0])
-            e1_target = section.index(e1[1])
-            e2_source = section.index(e2[0])
-            e2_target = section.index(e2[1])
-
-            """ Given a pair of vertices, look up the edge, and then the weight of the edge between them. """
-            f = lambda pair: self.edge_weights[self.graph.edge(pair[0], pair[1])]
-
-            """ Map f onto each pair of adjacent vertices, and return the summed result. """
-            result = sum(map(f, zip(section[e1_source:e2_source + 1], section[e1_target:e2_target + 1])))
-            return sum(map(f, zip(section[e1_source:e2_source + 1], section[e1_target:e2_target + 1])))
 
         def permissible(e1, e2):
             """
@@ -306,7 +301,7 @@ class TrafficNetwork:
                 - delta(bearing_1, bearing_2) + delta(bearing_2, bearing_3) < maximum_angle_delta
             :param e1:
             :param e2:
-            :return:
+            :return: True if permissible, else false.
             """
             return e1[1] == e2[0] and \
                    total_edge_length(e1, e2) < maximum_distance and \
@@ -376,31 +371,41 @@ class TrafficNetwork:
 
             return to_add, to_remove
 
+        """ Construct the edges of a section, and then call a partitioning algorithm on the edges of a section. """
         l = len(section)
         section_edges = [[list(edge) for edge in self.graph.get_out_edges(source) if edge[1] == target][0]
                          for source, target in zip(section[0:l], section[1:l + 1])]
 
         return greedy_partition(section_edges) if greedy else dp_partition(section_edges)
 
-    def equalize_node_density(self, maximum_distance, maximum_angle_delta):
-        vertices = []
-        edges = []
+    def equalize_node_density(self, maximum_distance, maximum_angle_delta, greedy=True):
+        """
+        Reduces the clustering of nodes in the network by splitting and merging edges.
+        :param maximum_distance: The maximum distance that should exist between any two adjacent nodes.
+        :param maximum_angle_delta: The maximum amount of angular change that can exist within a single section.
+        :param greedy: Whether or not the greedy algorithm should be used. (Default: True. DP Takes too long.)
+        :return: The change in the number of nodes
+        """
+        self.split_edges(maximum_distance)
+
+        vertices_to_remove = []
+        edges_to_add = []
         s = list(self.sections.values())
         s.sort()
         for section in s:
-            edges_to_add, vertices_to_remove = self.merge_edges(section, maximum_distance, maximum_angle_delta)
-            vertices.extend(vertices_to_remove)
-            edges.extend(edges_to_add)
+            new_edges, redundant_vertices = self.merge_edges(section, maximum_distance, maximum_angle_delta, greedy)
+            vertices_to_remove.extend(redundant_vertices)
+            edges_to_add.extend(new_edges)
 
         """ Add the new edges and edge weights into the graph. """
-        for edge in edges:
+        for edge in edges_to_add:
             new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
             self.edge_weights[new_edge] = sum(map(lambda pair: self.edge_weights[self.graph.edge(pair[0], pair[1])],
                                                   zip(section[edge[0]:edge[1]],
                                                       section[int(edge[0] + 1):int(edge[1] + 1)])))
 
-        vertices.sort(reverse=True)  # Removing vertices is destructive. Remove the largest indices first.
-        for vertex in vertices:
+        vertices_to_remove.sort(reverse=True)  # Removing vertices is destructive. Remove the largest indices first.
+        for vertex in vertices_to_remove:
             self.graph.remove_vertex(vertex)
         return
 
