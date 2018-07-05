@@ -209,9 +209,9 @@ class TrafficNetwork:
                 for edge in self.graph.get_out_edges(source):
                     if self.edge_weights[edge] > maximum_distance:
                         target = edge[1]  # edge is a numpy array of [source, target, edge]. Select target.
-                        edges_to_remove.append(edge)  # If an edge is split, the original edge should be removed.
+                        edges_to_remove.append(self.graph.edge(edge[0], edge[1]))  # If an edge is split, the original edge should be removed.
 
-                        new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance)) - 1
+                        new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance))
                         new_edge_distance = self.edge_weights[edge] / new_edge_count
                         current_point = shapes.Point.from_list(
                             list(self.node_locations[source]) + [self.node_heading[target]])
@@ -239,7 +239,7 @@ class TrafficNetwork:
                         original edge which is being split, and update the property map. """
                         self.edge_weights[self.graph.add_edge(previous_vertex, target)] = new_edge_distance
 
-                map(self.graph.remove_edge, edges_to_remove)
+                list(map(self.graph.remove_edge, edges_to_remove))
         return
 
     def merge_edges(self, section, maximum_distance, maximum_angle_delta, greedy=True):
@@ -372,7 +372,7 @@ class TrafficNetwork:
 
             to_add.append(current_subsection)
 
-            return to_add, to_remove
+            return [(e, cumulative_edge_length(e)) for e in to_add], to_remove
 
         """ Construct the edges of a section, and then call a partitioning algorithm on the edges of a section. """
         l = len(section)
@@ -387,30 +387,29 @@ class TrafficNetwork:
         :param maximum_distance: The maximum distance that should exist between any two adjacent nodes.
         :param maximum_angle_delta: The maximum amount of angular change that can exist within a single section.
         :param greedy: Whether or not the greedy algorithm should be used. (Default: True. DP Takes too long.)
-        :return: The change in the number of nodes
+        :return: The number of nodes in the graph.
         """
         """ Split edges which are very long. """
         self.split_edges(maximum_distance)
 
-        vertices_to_remove = []
-        edges_to_add = []
-        """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
-        for section in self.sections.values():
-            new_edges, redundant_vertices = self.merge_edges(section, maximum_distance, maximum_angle_delta, greedy)
-            vertices_to_remove.extend(redundant_vertices)
-            edges_to_add.extend(new_edges)
+        # vertices_to_remove = []
+        # edges_to_add = []
+        # """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
+        # for section in self.sections.values():
+        #     new_edges, redundant_vertices = self.merge_edges(section, maximum_distance, maximum_angle_delta, greedy)
+        #     vertices_to_remove.extend(redundant_vertices)
+        #     edges_to_add.extend(new_edges)
+        #
+        # """ Add the new edges and edge weights into the graph. """
+        # for edge, weight in edges_to_add:
+        #     new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
+        #     self.edge_weights[new_edge] = weight
+        #
+        # vertices_to_remove.sort(reverse=True)  # Removing vertices is destructive. Remove the largest indices first.
+        # for vertex in vertices_to_remove:
+        #     self.graph.remove_vertex(vertex)
 
-        """ Add the new edges and edge weights into the graph. """
-        for edge in edges_to_add:
-            new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
-            self.edge_weights[new_edge] = sum(map(lambda pair: self.edge_weights[self.graph.edge(pair[0], pair[1])],
-                                                  zip(section[edge[0]:edge[1]],
-                                                      section[int(edge[0] + 1):int(edge[1] + 1)])))
-
-        vertices_to_remove.sort(reverse=True)  # Removing vertices is destructive. Remove the largest indices first.
-        for vertex in vertices_to_remove:
-            self.graph.remove_vertex(vertex)
-        return
+        return self.graph.num_vertices()
 
     def get_exit_junction(self, id):
         """
@@ -439,7 +438,7 @@ class TrafficNetwork:
         """
         return utils.real_distance(self.node_locations[v1], self.node_locations[v2])
 
-    def export(self):
+    def export_nodes(self):
         """
         Returns a list of dictionaries containing the attributes of each vertex.
         """
@@ -447,3 +446,10 @@ class TrafficNetwork:
                  'lon': self.node_locations[v][0],
                  'lat': self.node_locations[v][1],
                  'heading': self.node_heading[v]} for v in self.graph.vertices()]
+
+    def export_edges(self):
+        return [{'lon1': self.node_locations[e.source()][0],
+                 'lat1': self.node_locations[e.source()][1],
+                 'lon2': self.node_locations[e.target()][0],
+                 'lat2': self.node_locations[e.target()][1],
+                 'weight': self.edge_weights[e]} for e in self.graph.edges()]
