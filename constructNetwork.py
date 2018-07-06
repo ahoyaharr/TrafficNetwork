@@ -418,6 +418,26 @@ class TrafficNetwork:
     
         return self.graph.num_vertices()
 
+    def find_path(self, section_id1, section_id2):
+        result = graph_tool.topology.shortest_path(
+            self.graph, self.sections[str(section_id1)][0],
+            self.sections[str(section_id2)][-1],
+            weights=self.edge_weights)
+
+        edges = result[1]
+
+        for edge in edges:
+            if self.edge_weights[edge] > 0:
+                print(tuple([round(value, 6) for value in self.node_locations[edge.source()]]),
+                      '@', self.node_id[edge.source()], '>', int(self.edge_weights[edge]), 'ft >',
+                      tuple([round(value, 6) for value in self.node_locations[edge.target()]]),
+                      '@', self.node_id[edge.target()])
+            else:
+                print('crossing junction', self.node_id[edge.source()], '@', tuple(self.node_locations[edge.source()]))
+
+        return result
+
+
     def get_exit_junction(self, id):
         """
         Given a section ID, returns the exit junction. 
