@@ -26,9 +26,10 @@ class TrafficNetwork:
         self.node_heading = self.graph.new_vertex_property("double")
         self.node_speed_limit = self.graph.new_vertex_property("double")
         self.node_id = self.graph.new_vertex_property("string")
+        self.junctions = self.graph.new_vertex_property("bool")
 
         self.sections = dict()
-        self.junctions = set()
+        
 
         """
         A junction is stored as a dictionary with the following mappings:
@@ -142,7 +143,7 @@ class TrafficNetwork:
 
         previous_node = section[-1]
         junction_node = self.graph.add_vertex()
-        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes.
+        self.junctions[junction_node]  # Each junction node is added to a set of junction nodes.
 
         # Update property map with the node's geolocation, speed, ID, and bearing.
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
@@ -172,7 +173,7 @@ class TrafficNetwork:
 
         next_node = section[0]
         junction_node = self.graph.add_vertex()
-        self.junctions.add(junction_node)  # Each junction node is added to a set of junction nodes.
+        self.junctions[junction_node]  # Each junction node is added to a set of junction nodes.
 
         "Build a property map containing the geolocation, speed, ID, and bearing"
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
@@ -225,7 +226,7 @@ class TrafficNetwork:
                             unless the target node is a junction node. Then inherit values from the source. """
                             self.node_locations[current_vertex] = current_point.as_list()
                             self.node_heading[current_vertex] = current_point.bearing
-                            property_vertex = source if target not in self.junctions else target
+                            property_vertex = source if not self.junctions[target] else target
                             self.node_speed_limit[current_vertex] = self.node_speed_limit[property_vertex]
                             self.node_id[current_vertex] = self.node_id[property_vertex]
 
@@ -414,7 +415,7 @@ class TrafficNetwork:
         #  Vertices have now been reindexed. Update each section with the new vertex IDs.
         for section_id in self.sections:
             self.sections[section_id] = [find_vertex(self.graph, original_indices, v)[0] for v in self.sections[section_id]]
-
+    
         return self.graph.num_vertices()
 
     def get_exit_junction(self, id):
