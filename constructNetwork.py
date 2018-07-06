@@ -200,11 +200,12 @@ class TrafficNetwork:
         it is a junction in which case they inherit from the source node.
         :param maximum_distance: The maximum allowable length of an edge, in feet.
         """
-
         """ Iterate through the vertices of each section. For each vertex v, evaluate edges for which v is a source.
         If an edge of weight greater than maximum_distance, then split it. """
-        for vertices in self.sections.values():
-            for source in vertices:
+        for section_id in self.sections:
+            current_section = []  # Need to update the section data after splitting the edges.
+            for source in self.sections[section_id]:
+                current_section.append(source)
                 edges_to_remove = []  # If an edge is split, it will need to be removed.
                 for edge in self.graph.get_out_edges(source):
                     if self.edge_weights[edge] > maximum_distance:
@@ -219,6 +220,7 @@ class TrafficNetwork:
                         for _ in range(new_edge_count):
                             current_point = utils.offset_point(current_point, new_edge_distance, current_point.bearing)
                             current_vertex = self.graph.add_vertex()
+                            current_section.append(current_vertex)  # The new vertex becomes a part of the section.
                             """ Populate the property map for the new vertex. Inherit values from the target node,
                             unless the target node is a junction node. Then inherit values from the source. """
                             self.node_locations[current_vertex] = current_point.as_list()
@@ -238,9 +240,8 @@ class TrafficNetwork:
                         """ Create an edge between the last new vertex that was created and the target of the
                         original edge which is being split, and update the property map. """
                         self.edge_weights[self.graph.add_edge(previous_vertex, target)] = new_edge_distance
-
-                list(map(self.graph.remove_edge, edges_to_remove))
-        return
+                list(map(self.graph.remove_edge, edges_to_remove))  # Remove all relevant edges
+            self.sections[section_id] = current_section  # Update the section with the new vertices
 
     def merge_edges(self, section, maximum_distance, maximum_angle_delta, greedy=True):
         """
@@ -363,9 +364,8 @@ class TrafficNetwork:
             begins with the current edge. """
             for edge in edges[1:]:
                 if permissible(current_subsection, edge):
-                    to_remove.append(current_subsection[1])
+                    to_remove.append(edge[0])
                     current_subsection = merge(current_subsection, edge)
-
                 else:
                     to_add.append(current_subsection)
                     current_subsection = edge
@@ -392,22 +392,28 @@ class TrafficNetwork:
         """ Split edges which are very long. """
         self.split_edges(maximum_distance)
 
-        # vertices_to_remove = []
-        # edges_to_add = []
-        # """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
-        # for section in self.sections.values():
-        #     new_edges, redundant_vertices = self.merge_edges(section, maximum_distance, maximum_angle_delta, greedy)
-        #     vertices_to_remove.extend(redundant_vertices)
-        #     edges_to_add.extend(new_edges)
-        #
-        # """ Add the new edges and edge weights into the graph. """
-        # for edge, weight in edges_to_add:
-        #     new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
-        #     self.edge_weights[new_edge] = weight
-        #
-        # vertices_to_remove.sort(reverse=True)  # Removing vertices is destructive. Remove the largest indices first.
-        # for vertex in vertices_to_remove:
-        #     self.graph.remove_vertex(vertex)
+        vertices_to_remove = []
+        edges_to_add = []
+        """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
+        for section_id in self.sections:
+            new_edges, redundant_vertices = self.merge_edges(self.sections[section_id], maximum_distance, maximum_angle_delta, greedy)
+            vertices_to_remove.extend(redundant_vertices)
+            edges_to_add.extend(new_edges)
+            # Maintain the section list
+            self.sections[section_id] = list(filter(lambda v: v not in redundant_vertices, self.sections[section_id]))
+
+        """ Add the new edges and edge weights into the graph. """
+        for edge, weight in edges_to_add:
+            new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
+            self.edge_weights[new_edge] = weight
+
+        """ Removing vertices reindexes the vertices and edges of the graph. Need to maintain external data 
+        structures to prevent data corruption. """
+        original_indices = self.graph.vertex_index.copy()  # Property map will correct for reindexing
+        self.graph.remove_vertex(vertices_to_remove, fast=True)
+        #  Vertices have now been reindexed. Update each section with the new vertex IDs.
+        for section_id in self.sections:
+            self.sections[section_id] = [find_vertex(self.graph, original_indices, v)[0] for v in self.sections[section_id]]
 
         return self.graph.num_vertices()
 
