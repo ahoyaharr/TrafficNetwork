@@ -469,13 +469,15 @@ class TrafficNetwork:
         """
         Returns a list of dictionaries containing the attributes of each vertex.
         """
-        return [{'speed': self.node_speed_limit[v],
+        return ['lon', 'lat', 'speed', 'heading'],\
+               [{'speed': self.node_speed_limit[v],
                  'lon': self.node_locations[v][0],
                  'lat': self.node_locations[v][1],
                  'heading': self.node_heading[v]} for v in self.graph.vertices()]
 
     def export_edges(self):
-        return [{'lon1': self.node_locations[e.source()][0],
+        return ['lon1', 'lat1', 'lon2', 'lat2', 'weight'],\
+               [{'lon1': self.node_locations[e.source()][0],
                  'lat1': self.node_locations[e.source()][1],
                  'lon2': self.node_locations[e.target()][0],
                  'lat2': self.node_locations[e.target()][1],
