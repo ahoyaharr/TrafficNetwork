@@ -21,12 +21,12 @@ Construct a `MapMatch` by calling `mapMatch.MapMatch(TrafficNetwork, SpatialInde
 
 A network can export itself as a set of nodes, or as a set of edges.
 
-```
+```python
 header, data = network.export_nodes()
 util.export.export(header, data, 'nodes')
-```
+``` 
 
-```
+```python
 header, data = network.export_edges()
 util.export.export(header, data, 'edges')
 ```
