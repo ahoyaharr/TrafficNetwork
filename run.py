@@ -5,8 +5,11 @@ import util.m_tree
 import util.parser as parser
 import util.export as export
 import mapMatch
+import map_match.evaluation_fns
+import map_match.scoring_fns
 from constructNetwork import TrafficNetwork
 from graph_tool.all import *
+import graph_tool.topology
 import collections
 import itertools
 #
@@ -18,18 +21,43 @@ p = util.Shapes.Point(-118.141671408,34.169072391, 0)
 # print(p_offset)
 header = ['lon', 'lat', 'speed', 'heading']
 
-# data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st.csv', subdirectory='data')
+data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st.csv', subdirectory='data')
 #
 junction_map, section_map = util.utils.decode_json()
 network = TrafficNetwork(junction_map, section_map)
-network.split_edges(200)
-#network.equalize_node_density(200, 40)
+print(network.equalize_node_density(100, 15, greedy=True))
 
-export.export(header, network.export(), 'node_density_test3')
+# util.export.export(['lon1', 'lat1', 'lon2', 'lat2', 'weight'], network.export_edges(), 'edges_final')
+# util.export.export(header, network.export_nodes(), 'nodes final')
+
+# print('searching')
+# print(network.sections['1800'], network.sections['2638'])
+# result = graph_tool.topology.shortest_path(network.graph, network.sections['1800'][0], network.sections['2638'][-1], weights=network.edge_weights)
+# print('finished')
+# print(result)
+#
+# for va in result:
+#     for v in va:
+#         prev = None
+#         try:
+#             if prev != network.node_id[v]:
+#                 print(network.node_locations[v], network.node_id[v])
+#                 prev = network.node_id[v]
+#         except:
+#             print(network.edge_weights[v])
+
+# network.find_path(1800, 2638)
+
 #
 #
-# mm = mapMatch.MapMatch(network, util.m_tree.MTree, mapMatch.first_score, mapMatch.first_evaluation, data)
-# print(mm.match())
+print('begin populating m-tree')
+# util.utils.time_fn(mapMatch.MapMatch, 1, [network, util.m_tree.MTree, map_match.scoring_fns.first_score, map_match.evaluation_fns.first_evaluation, data])
+mm = mapMatch.MapMatch(network, util.m_tree.MTree, map_match.scoring_fns.simple_distance_heading, map_match.evaluation_fns.simple_evaluation, data)
+print('finish populating m-tree')
+#
+header, result = mm.export()
+util.export.export(header, result, 'match_attempt_simple')
+# print([network.node_locations[v_id] for v_id in mm.find_knn([-118.017415, 34.141630])])
 #
 # #
 #
@@ -42,7 +70,7 @@ export.export(header, network.export(), 'node_density_test3')
 # time_fn(TrafficNetwork, 1, [junction_map, section_map, 125])
 #
 # print("finished making network")
-#graph_draw(network.graph)
+# graph_draw(network.graph)
 
 # nodes, edge = graph_tool.topology.shortest_path(network.graph, network.get_entrance_junction('1941'),
 #                                                network.get_exit_junction('24237'),
