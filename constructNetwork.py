@@ -20,8 +20,12 @@ class TrafficNetwork:
     """
 
     def __init__(self, junction_map, section_map):
+
         self.graph = Graph(directed=True)
+
         self.edge_weights = self.graph.new_edge_property("double")
+
+        self.node_width = self.graph.new_vertex_property("double")
         self.node_locations = self.graph.new_vertex_property("vector<double>")
         self.node_heading = self.graph.new_vertex_property("double")
         self.node_speed_limit = self.graph.new_vertex_property("double")
@@ -29,7 +33,15 @@ class TrafficNetwork:
         self.junctions = self.graph.new_vertex_property("bool")
 
         self.sections = dict()
-        
+
+        self.road_types = {'street': 1,
+                           'freeway hov lane': 0,
+                           'off ramp': 1,
+                           'on ramp': 1,
+                           'light rail track': 0,
+                           'freeway connector': 1,
+                           'freeway': 1,
+                           'artertial': 1}
 
         """
         A junction is stored as a dictionary with the following mappings:
@@ -75,10 +87,9 @@ class TrafficNetwork:
             toLaneRange: the inclusive range of lanes to the destination section for which the turn will arrive at
             originSectionID: the section ID of the origin
             destinationSectionID: the section ID of the destination
-            speed: the average speed at which the turn is taken in km/hr
+            speed: the average speed at which the turn is taken in miles/hr
             angle: the angle at which a turn is taken
             """
-            "TODO: convert turn speed to mph"
             """
             Each turn defines a connection between two sections.
             For each turn, connect the two relevant sections. 
@@ -121,6 +132,7 @@ class TrafficNetwork:
             self.node_locations[vertex] = [coordinate_map['lon'], coordinate_map['lat']]
             self.node_id[vertex] = section_map['sectionID']
             self.node_speed_limit[vertex] = section_map['speed']
+            self.node_width[vertex] = self.road_types[section_map['type']] * section_map['numLanes']
 
             if section:
                 # The first node does not get a heading until the junction node has been added.
@@ -143,12 +155,12 @@ class TrafficNetwork:
 
         previous_node = section[-1]
         junction_node = self.graph.add_vertex()
-        self.junctions[junction_node]  # Each junction node is added to a set of junction nodes.
 
         # Update property map with the node's geolocation, speed, ID, and bearing.
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
         self.node_id[junction_node] = junction['junctionID']
         self.node_speed_limit[junction_node] = self.node_speed_limit[previous_node]
+        self.node_width[junction_node] = self.node_width[previous_node]
 
         # Look up geolocation of previous node, then compute heading to junction.
         previous_node_geolocation = self.node_locations[previous_node]
@@ -173,12 +185,12 @@ class TrafficNetwork:
 
         next_node = section[0]
         junction_node = self.graph.add_vertex()
-        self.junctions[junction_node]  # Each junction node is added to a set of junction nodes.
 
         "Build a property map containing the geolocation, speed, ID, and bearing"
         self.node_locations[junction_node] = [junction['geolocation']['lon'], junction['geolocation']['lat']]
         self.node_id[junction_node] = junction['junctionID']
         self.node_speed_limit[junction_node] = self.node_speed_limit[next_node]
+        self.node_width[junction_node] = self.node_width[next_node]
 
         # Look up geolocation of next node, then compute heading to junction.
         next_node_geolocation = self.node_locations[next_node]
@@ -228,6 +240,7 @@ class TrafficNetwork:
                             self.node_heading[current_vertex] = current_point.bearing
                             property_vertex = source if not self.junctions[target] else target
                             self.node_speed_limit[current_vertex] = self.node_speed_limit[property_vertex]
+                            self.node_width[current_vertex] = self.node_width[property_vertex]
                             self.node_id[current_vertex] = self.node_id[property_vertex]
 
                             """ Create an edge between the previous vertex and the newly created vertex, 
