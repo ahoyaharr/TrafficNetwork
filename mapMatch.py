@@ -13,6 +13,7 @@ class MapMatch:
         self.score = score
         self.evaluation = evaluation
         self.data = data
+        self.result = self.match()
 
     def match(self):
         """
@@ -37,3 +38,29 @@ class MapMatch:
         result = [item for item in self.tree.search(v, num_results) if item is not None]
         self.network.graph.remove_vertex(v, fast=True)
         return result
+
+    def update_fn(self, score=None, evaluation=None):
+        """
+        Updates the functions used in the map matching algorithm and calls match again.
+        :param score: a score function
+        :param evaluation: an evaluation function
+        """
+        self.score = score if score is not None else self.score
+        self.evaluation = evaluation if evaluation is not None else self.evaluation
+        self.match()
+
+
+    def export(self):
+        """
+        Export the GPS point, and the geoposition and ID of the node which it was matched to a format suitable for
+        util.export.export.
+        :return: (list of string, list of dictionaries)
+        """
+        header = ['gps_lon', 'gps_lat', 'match_id', 'match_lon', 'match_lat']
+        result = [{'gps_lon': gps_point.as_list()[0],
+                   'gps_lat': gps_point.as_list()[1],
+                   'match_id': result[0],
+                   'match_lon': result[1][0],
+                   'match_lat': result[1][1]} for gps_point, result in zip(self.data, self.result)]
+
+        return header, result
