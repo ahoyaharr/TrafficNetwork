@@ -41,7 +41,7 @@ class TrafficNetwork:
                            'light rail track': 0,
                            'freeway connector': 1,
                            'freeway': 1,
-                           'artertial': 1}
+                           'arterial': 1}
 
         """
         A junction is stored as a dictionary with the following mappings:
