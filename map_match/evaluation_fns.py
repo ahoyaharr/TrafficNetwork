@@ -1,6 +1,10 @@
 import copy
 import math
 
+def simple_evaluation(network, scores):
+    best_match = [max(score.keys(), key=(lambda key: score[key])) for score in scores]
+    matches = [(network.node_id[node], network.node_locations[node]) for node in best_match]
+    return matches
 
 def first_evaluation(network, scores):
     """

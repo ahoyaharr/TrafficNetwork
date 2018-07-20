@@ -2,6 +2,13 @@ import math
 
 from util.utils import real_distance
 
+def simple_distance_heading(point, candidates, network):
+    scores = {}
+    for candidate in candidates:
+        heading_multiplier = math.cos(abs(math.radians(point.bearing - network.node_heading[candidate])))
+        distance = 1/real_distance(point.as_list(), network.node_locations[candidate])
+        scores[candidate] = distance * heading_multiplier
+    return scores
 
 def first_score(point, candidates, network):
     """
