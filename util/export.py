@@ -7,7 +7,7 @@ def export(header, data, filename):
     """
     Write a CSV as defined by the header, and the dictionaries holding data to the ~/exports/ directory.
     :param header: A sequence of strings of length k, where each item is a column name
-    :param data: A sequence of tuples each of length k, where each item in a row in the relation.
+    :param data: A sequence of dictionaries each of length k, where each item in a row in the relation.
     :return: True if successful, otherwise False
     """
     assert type(data) is list and len(data) > 0  # Data must be a list containing data.
