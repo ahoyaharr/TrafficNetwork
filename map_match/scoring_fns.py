@@ -12,25 +12,36 @@ def path_score(index, points, find_candidates, network):
     :param network:
     :return:
     """
+    try:
+        '' in path_score.cache
+    except AttributeError:
+        path_score.cache = {}
+
     print(' ' * index, '-')  # prints the depth of the recursion
-    """ Lower values of connectivity_factor increase the weight that the distance 
-    between previously matched points has on the current match."""
-    connectivity_factor = 1
-    connectivity_score = lambda a, b, cf: cf + math.log(network.shortest_distance_between_vertices(a, b) + math.e)
-    point = points[index]
-    scores = {}
 
-    for candidate in find_candidates(point.as_list()):
-        heading_multiplier = math.cos(abs(math.radians(point.bearing - network.node_heading[candidate])))
-        distance = 1 / real_distance(point.as_list(), network.node_locations[candidate])
-        scores[candidate] = distance * heading_multiplier
+    key = (index, tuple((point for point in points)))
+    if key not in path_score.cache:
+        """ Lower values of connectivity_factor increase the weight that the distance 
+        between previously matched points has on the current match."""
+        connectivity_factor = 1
+        connectivity_score = lambda a, b, cf: cf + math.log(network.shortest_distance_between_vertices(a, b) + math.e)
+        point = points[index]
+        scores = {}
 
-    if index > 0:
-        previous_candidates = path_score(index - 1, points, find_candidates, network)
-        previous_match = max(previous_candidates, key=lambda candidate: previous_candidates[candidate])
-        scores = {candidate: score / connectivity_score(candidate, previous_match, connectivity_factor)
-                  for candidate, score in scores.items()}
-    return scores
+        for candidate in find_candidates(point.as_list()):
+            heading_multiplier = math.cos(abs(math.radians(point.bearing - network.node_heading[candidate])))
+            distance = 1 / real_distance(point.as_list(), network.node_locations[candidate])
+            scores[candidate] = distance * heading_multiplier
+
+        if index > 0:
+            previous_candidates = path_score(index - 1, points, find_candidates, network)
+            previous_match = max(previous_candidates, key=lambda candidate: previous_candidates[candidate])
+            scores = {candidate: score / connectivity_score(candidate, previous_match, connectivity_factor)
+                      for candidate, score in scores.items()}
+
+        path_score.cache[key] = scores
+
+    return path_score.cache[key]
 
 
 def simple_distance_heading(index, points, find_candidates, network):
