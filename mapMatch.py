@@ -21,7 +21,7 @@ class MapMatch:
         defined by the score and evaluation functions.
         :return: The result, in the form of the return of evaluation.
         """
-        scores = [self.score(p, self.find_knn(p.as_list()), self.network) for p in self.data]
+        scores = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
         return self.evaluation(self.network, scores)
 
     def find_knn(self, point, num_results=20):
@@ -48,7 +48,6 @@ class MapMatch:
         self.score = score if score is not None else self.score
         self.evaluation = evaluation if evaluation is not None else self.evaluation
         self.match()
-
 
     def export(self):
         """
