@@ -223,7 +223,8 @@ class TrafficNetwork:
                 for edge in self.graph.get_out_edges(source):
                     if self.edge_weights[edge] > maximum_distance:
                         target = edge[1]  # edge is a numpy array of [source, target, edge]. Select target.
-                        edges_to_remove.append(self.graph.edge(edge[0], edge[1]))  # If an edge is split, the original edge should be removed.
+                        edges_to_remove.append(self.graph.edge(edge[0], edge[
+                            1]))  # If an edge is split, the original edge should be removed.
 
                         new_edge_count = int(math.ceil(self.edge_weights[edge] / maximum_distance))
                         new_edge_distance = self.edge_weights[edge] / new_edge_count
@@ -410,7 +411,8 @@ class TrafficNetwork:
         edges_to_add = []
         """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
         for section_id in self.sections:
-            new_edges, redundant_vertices = self.merge_edges(self.sections[section_id], maximum_distance, maximum_angle_delta, greedy)
+            new_edges, redundant_vertices = self.merge_edges(self.sections[section_id], maximum_distance,
+                                                             maximum_angle_delta, greedy)
             vertices_to_remove.extend(redundant_vertices)
             edges_to_add.extend(new_edges)
             # Maintain the section list
@@ -427,11 +429,18 @@ class TrafficNetwork:
         self.graph.remove_vertex(vertices_to_remove, fast=True)
         #  Vertices have now been reindexed. Update each section with the new vertex IDs.
         for section_id in self.sections:
-            self.sections[section_id] = [find_vertex(self.graph, original_indices, v)[0] for v in self.sections[section_id]]
-    
+            self.sections[section_id] = [find_vertex(self.graph, original_indices, v)[0] for v in
+                                         self.sections[section_id]]
+
         return self.graph.num_vertices()
 
-    def find_path(self, section_id1, section_id2):
+    def find_section_path(self, section_id1, section_id2):
+        """
+        Find a path between two sections.
+        :param section_id1:
+        :param section_id2:
+        :return:
+        """
         result = graph_tool.topology.shortest_path(
             self.graph, self.sections[str(section_id1)][0],
             self.sections[str(section_id2)][-1],
@@ -450,6 +459,17 @@ class TrafficNetwork:
 
         return result
 
+    def find_vertex_path(self, vertex_id1, vertex_id2):
+        """
+        Find the vertices and edges in a path between two vertices.
+        :param vertex_id1:
+        :param vertex_id2:
+        :return:
+        """
+        return graph_tool.topology.shortest_path(self.graph, vertex_id1, vertex_id2, weights=self.edge_weights)
+
+    def shortest_distance_between_vertices(self, v1, v2):
+        return graph_tool.topology.shortest_distance(self.graph, v1, v2, weights=self.edge_weights)
 
     def get_exit_junction(self, id):
         """
@@ -482,14 +502,14 @@ class TrafficNetwork:
         """
         Returns a list of dictionaries containing the attributes of each vertex.
         """
-        return ['lon', 'lat', 'speed', 'heading'],\
+        return ['lon', 'lat', 'speed', 'heading'], \
                [{'speed': self.node_speed_limit[v],
                  'lon': self.node_locations[v][0],
                  'lat': self.node_locations[v][1],
                  'heading': self.node_heading[v]} for v in self.graph.vertices()]
 
     def export_edges(self):
-        return ['lon1', 'lat1', 'lon2', 'lat2', 'weight'],\
+        return ['lon1', 'lat1', 'lon2', 'lat2', 'weight'], \
                [{'lon1': self.node_locations[e.source()][0],
                  'lat1': self.node_locations[e.source()][1],
                  'lon2': self.node_locations[e.target()][0],
