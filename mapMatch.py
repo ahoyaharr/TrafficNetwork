@@ -13,7 +13,9 @@ class MapMatch:
         self.score = score
         self.evaluation = evaluation
         self.data = data
-        self.result = self.match()
+        self.matches = None
+        self.result = None
+        self.match()
 
     def match(self):
         """
@@ -21,8 +23,9 @@ class MapMatch:
         defined by the score and evaluation functions.
         :return: The result, in the form of the return of evaluation.
         """
-        scores = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
-        return self.evaluation(self.network, scores)
+        self.matches = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
+        self.result = self.evaluation(self.network, self.matches)
+        return self.result
 
     def find_knn(self, point, num_results=20):
         """
@@ -49,17 +52,32 @@ class MapMatch:
         self.evaluation = evaluation if evaluation is not None else self.evaluation
         self.match()
 
-    def export(self):
+    def export_matches(self):
         """
         Export the GPS point, and the geoposition and ID of the node which it was matched to a format suitable for
         util.export.export.
         :return: (list of string, list of dictionaries)
         """
-        header = ['gps_lon', 'gps_lat', 'match_id', 'match_lon', 'match_lat']
-        result = [{'gps_lon': gps_point.as_list()[0],
-                   'gps_lat': gps_point.as_list()[1],
-                   'match_id': result[0],
-                   'match_lon': result[1][0],
-                   'match_lat': result[1][1]} for gps_point, result in zip(self.data, self.result)]
-
+        header = ['gps_lon', 'gps_lat', 'match_lon', 'match_lat', 'score']
+        result = []
+        for probe_data, candidate in zip(self.data, self.matches):
+            result.extend({'gps_lon': probe_data.as_list()[0],
+                           'gps_lat': probe_data.as_list()[1],
+                           'match_lon': self.network.node_locations[v_id][0],
+                           'match_lat': self.network.node_locations[v_id][1],
+                           'score': score} for v_id, score in candidate.items())
         return header, result
+
+    def export_path(self):
+        """
+        Temporary.
+        :return:
+        """
+        header = ['lon1', 'lat1', 'lon2', 'lat2']
+        path = [{'lon1': first[0],
+                 'lat1': first[1],
+                 'lon2': second[0],
+                 'lat2': second[1]} for first, second in
+                zip((self.network.node_locations[v_id] for v_id in self.result[:-1]), (self.network.node_locations[v_id] for v_id in self.result[1:] ))]
+        return header, path
+
