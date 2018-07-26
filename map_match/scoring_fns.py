@@ -17,7 +17,7 @@ def path_score(index, points, find_candidates, network):
     except AttributeError:
         path_score.cache = {}
 
-    print(' ' * index, '-')  # prints the depth of the recursion
+    # print(' ' * index, '-')  # prints the depth of the recursion
 
     key = (index, tuple((point for point in points)))
     if key not in path_score.cache:
@@ -29,9 +29,10 @@ def path_score(index, points, find_candidates, network):
         scores = {}
 
         for candidate in find_candidates(point.as_list()):
-            heading_multiplier = math.cos(abs(math.radians(point.bearing - network.node_heading[candidate])))
+            heading_multiplier = 1 + math.cos(math.radians(point.bearing - network.node_heading[candidate]))
             distance = 1 / real_distance(point.as_list(), network.node_locations[candidate])
-            scores[candidate] = distance * heading_multiplier
+            width = network.node_width[candidate]
+            scores[candidate] = distance * heading_multiplier * width
 
         if index > 0:
             previous_candidates = path_score(index - 1, points, find_candidates, network)
