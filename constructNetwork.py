@@ -459,14 +459,23 @@ class TrafficNetwork:
 
         return result
 
-    def find_vertex_path(self, vertex_id1, vertex_id2):
+    def find_vertex_path(self, vertex_id1, vertex_id2, as_network_object):
         """
         Find the vertices and edges in a path between two vertices.
         :param vertex_id1:
         :param vertex_id2:
+        :param as_network_object: whether or not the returned values should be integers or vertex/edge objects
         :return:
         """
-        return graph_tool.topology.shortest_path(self.graph, vertex_id1, vertex_id2, weights=self.edge_weights)
+        v1 = self.graph.vertex(vertex_id1)
+        v2 = self.graph.vertex(vertex_id2)
+        vertices, edges = graph_tool.topology.shortest_path(self.graph, v1, v2, weights=self.edge_weights)
+
+        if not as_network_object:
+            vertices = [self.graph.vertex_index[vertex] for vertex in vertices]
+            edges = [self.graph.edge_index[edge] for edge in edges]
+
+        return vertices, edges
 
     def shortest_distance_between_vertices(self, v1, v2):
         return graph_tool.topology.shortest_distance(self.graph, v1, v2, weights=self.edge_weights)
