@@ -22,10 +22,18 @@ Usage:
     >>> tree = MTree(d_int, max_node_size=4)   # create an empty M-tree
     >>> tree.add(1)           # add objects 1, 5 and 9 to the tree
     >>> tree.add_all([5, 9])
-    >>> tree.search(10)       # search the object closest to 10. Will return 9
-    >>> [9]
-    >>> tree.search(9, 2)     # search the two objects closest to 9.
-    >>> [5, 9]
+    >>> list(tree.search(10))       # search the object closest to 10. Will return 9
+    [9]
+    >>> list(tree.search(9, 2))     # search the two objects closest to 9.
+    [9, 5]
+
+    >>> from itertools import product
+    >>> def distance(p1, p2):
+    ...  return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[0]) ** 2) ** 0.5
+    ...
+    >>> tree = MTree(distance, max_node_size=50)
+    >>> tree.add_all(product(range(250), range(250)))
+    >>> list(tree.search([125, 125], k=20))
 
 The size of nodes (optional argument `max_node_size`) has a large influence on
 the number of calls of the distance function (`d`).
@@ -229,28 +237,30 @@ class MTree(object):
         If the tree has less objects than k, it will return all the
         elements of the tree."""
         k = min(k, len(self))
-        if k == 0: return []
+
+        if k == 0:
+            return []
 
         # priority queue of subtrees not yet explored ordered by dmin
         pr = []
-        heappush(pr, PrEntry(self.root, 0, 0))
+        heappush(pr, PrEntry(self.root, 0, 0))  # What do I do?
 
         # at the end will contain the results
-        nn = NN(k)
+        nearest_neighbours = NN(k)
 
         while pr:
-            prEntry = heappop(pr)
-            if (prEntry.dmin > nn.search_radius()):
+            subtree_ptr = heappop(pr)
+            if subtree_ptr.dmin > nearest_neighbours.search_radius():
                 # best candidate is too far, we won't have better a answer
                 # we can stop
                 break
-            prEntry.tree.search(query_obj, pr, nn, prEntry.d_query)
+            subtree_ptr.tree.search(query_obj, pr, nearest_neighbours, subtree_ptr.d_query)
 
             # could prune pr here
             # (the paper prunes after each entry insertion, instead whe could
             # prune once after handling all the entries of a node)
 
-        return nn.result_list()
+        return nearest_neighbours.result_list()
 
 
 NNEntry = collections.namedtuple('NNEntry', 'obj dmax')
