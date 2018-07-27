@@ -19,11 +19,12 @@ def pseudo_viterbi(network, scores):
             """
             #print(active_path)
             if not active_path[0]:  # If there was a path that led to a dead end, the probability is zero.
+                print('warning: ', active_path)
                 return 0
             pr_active_path = active_path[1]
             pr_candidate = observation_candidate[1]
             distance = 1 + network.shortest_distance_between_vertices(active_path[0][-1], observation_candidate[0])
-            return (pr_active_path * pr_candidate) / distance
+            return (pr_active_path * pr_candidate) / (distance ** 0.25)
 
         def update_path(path):
             """
@@ -31,7 +32,10 @@ def pseudo_viterbi(network, scores):
             :param path: A list of vertex IDs
             :return: A list of vertex IDs
             """
-            return path + [observation_candidate[0]]
+            #return path + [observation_candidate[0]]
+            if not path:
+                print('warning')
+                return list()
             return path[:-1] + network.find_vertex_path(path[-1], observation_candidate[0], False)[0]
 
         best = max(((active_path[0], update_pr(active_path)) for active_path in active_paths), key=lambda t: t[1])
