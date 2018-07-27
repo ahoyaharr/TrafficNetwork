@@ -48,10 +48,13 @@ def path_score(index, points, find_candidates, network):
 def simple_distance_heading(index, points, find_candidates, network):
     point = points[index]
     scores = {}
-    for candidate in find_candidates(point):
-        heading_multiplier = math.cos(abs(math.radians(point.bearing - network.node_heading[candidate])))
-        distance = 1 / real_distance(point.as_list(), network.node_locations[candidate])
-        scores[candidate] = distance * heading_multiplier
+    for candidate in find_candidates(point.as_list()):
+        width = network.node_width[candidate]
+        if width == 0:  # Exclude all lanes with zero weight
+            continue
+        heading_multiplier = 1 + math.cos(math.radians(point.bearing - network.node_heading[candidate]))
+        distance = 1 / (1 + real_distance(point.as_list(), network.node_locations[candidate]))
+        scores[candidate] = distance * heading_multiplier * width
     return scores
 
 # def first_score(point, candidates, network):
