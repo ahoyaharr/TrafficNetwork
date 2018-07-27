@@ -8,7 +8,8 @@ class MapMatch:
         :param data: Sequence of DataPoints.
         """
         self.network = network
-        self.tree = tree(network.vertex_distance)
+        print('mm: constructing tree...')
+        self.tree = tree(network.vertex_distance, max_node_size=100)
         self.tree.add_all(network.graph.get_vertices())
         self.score = score
         self.evaluation = evaluation
@@ -23,7 +24,9 @@ class MapMatch:
         defined by the score and evaluation functions.
         :return: The result, in the form of the return of evaluation.
         """
+        print('mm: finding/scoring candidates...')
         self.matches = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
+        print('mm: searching for correct path...')
         self.result = self.evaluation(self.network, self.matches)
         return self.result
 

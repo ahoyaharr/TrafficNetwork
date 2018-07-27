@@ -20,7 +20,7 @@ class TrafficNetwork:
     """
 
     def __init__(self, junction_map, section_map):
-
+        print('network: constructing network...')
         self.graph = Graph(directed=True)
 
         self.edge_weights = self.graph.new_edge_property("double")
@@ -404,9 +404,11 @@ class TrafficNetwork:
         :param greedy: Whether or not the greedy algorithm should be used. (Default: True. DP Takes too long.)
         :return: The number of nodes in the graph.
         """
+        print('network: splitting long edges...')
         """ Split edges which are very long. """
         self.split_edges(maximum_distance)
 
+        print('network: merging short edges...')
         vertices_to_remove = []
         edges_to_add = []
         """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
