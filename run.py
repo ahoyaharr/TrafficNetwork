@@ -1,23 +1,16 @@
-import util.utils
-import util.Shapes
-import util.SearchArea
-import util.m_tree
-import util.parser as parser
-import util.export as export
 import mapMatch
 import map_match.evaluation_fns
 import map_match.scoring_fns
+import util.Shapes
+import util.m_tree.tree
+import util.utils
 from constructNetwork import TrafficNetwork
-from graph_tool.all import *
-import graph_tool.topology
-import collections
-import itertools
 
 junction_map, section_map = util.utils.decode_json()
 network = TrafficNetwork(junction_map, section_map)
 data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st_ordered.csv', subdirectory='data')
 print('network constructed. number of nodes:', network.equalize_node_density(200, 15, greedy=True))
-mm = mapMatch.MapMatch(network, util.m_tree.MTree, map_match.scoring_fns.simple_distance_heading, map_match.evaluation_fns.pseudo_viterbi, data)
+mm = mapMatch.MapMatch(network, util.m_tree.tree.MTree, map_match.scoring_fns.simple_distance_heading, map_match.evaluation_fns.pseudo_viterbi, data)
 
 path_header, path_result = mm.export_path()
 path_header.append('number')

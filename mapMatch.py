@@ -9,7 +9,7 @@ class MapMatch:
         """
         self.network = network
         print('mm: constructing tree...')
-        self.tree = tree(network.vertex_distance, max_node_size=100)
+        self.tree = tree(distance_function=network.vertex_distance)
         self.tree.add_all(network.graph.get_vertices())
         self.score = score
         self.evaluation = evaluation
@@ -41,7 +41,7 @@ class MapMatch:
         point from the logical network. """
         v = self.network.graph.add_vertex()
         self.network.node_locations[v] = point
-        result = [item for item in self.tree.search(v, num_results) if item is not None]
+        result = [item for item in self.tree.search(v, limit=num_results) if item is not None]
         self.network.graph.remove_vertex(v, fast=True)
         return result
 
