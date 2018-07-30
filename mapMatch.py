@@ -2,7 +2,7 @@ class MapMatch:
     def __init__(self, network, tree, score, evaluation, data):
         """
         :param network: An object containing a logical network of nodes and a distance function, vertex_distance.
-        :param tree: A data structure which can be constructed vertex_distance and populated by add_all.
+        :param tree: A data structure which can be constructed network.vertex_distance and populated by add_all.
         :param score: A function which accepts a network, a point, and a sequence of candidate points.
         :param evaluation: A function which accepts a network and the result of calling score on each data point.
         :param data: Sequence of DataPoints.
