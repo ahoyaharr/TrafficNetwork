@@ -1,24 +1,7 @@
 from collections import namedtuple
+
 import util.m_tree.mtree_funcs as functions
 from util.m_tree.heap_queue import HeapQueue
-from itertools import product
-import math
-
-
-def d_simple(p1, p2):
-    type(p1)
-    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
-
-
-def distance(p1, p2):
-    dist = 0
-    for v1, v2 in zip(p1, p2):
-        diff = v1 - v2
-        dist += diff * diff
-    dist = math.sqrt(dist)
-    return dist
-
-
 
 _INFINITY = float("inf")
 
@@ -139,7 +122,7 @@ class _Node(_IndexItem):
     def _check_child_metrics(self, child, mtree):
         dist = mtree.distance_function(child.data, self.data)
         assert child.distance_to_parent == dist, (
-        child.data, self.data, child.distance_to_parent, dist, abs(child.distance_to_parent - dist))
+            child.data, self.data, child.distance_to_parent, dist, abs(child.distance_to_parent - dist))
         assert child.distance_to_parent + child.radius <= self.radius
 
 
@@ -518,7 +501,6 @@ class MTree(object):
                     assert _ is next_nearest
 
                     yield next_nearest.item.data
-                    #yield self.ResultItem(data=next_nearest.item.data, distance=next_nearest.distance)
                     yielded_count += 1
                     if yielded_count >= limit:
                         # Limit reached
@@ -529,10 +511,3 @@ class MTree(object):
     def _check(self):
         if self.root is not None:
             self.root._check(self)
-
-
-tree = MTree(distance_function=d_simple)
-tree.add_all(product(range(50), range(50)))
-x = list(tree.search([25, 25], limit=15))
-print(x)
-1 + 1
