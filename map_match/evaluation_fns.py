@@ -1,13 +1,24 @@
 import copy
 import math
 
-
-def pseudo_viterbi(network, scores):
+def viterbi_optimized(network, scores):
     """
-
+    An optimized version of Viterbi. Instead of evaluating the K*O matrix column by column, the single most likely
+    path is evaluated. In the worst case, the full matrix is evaluated which yields the same runtime as the
+    basic Viterbu algorithm, O(K^2 * O). In the best case, only a single path is evaluated, which has a time complexity
+    of Ω(K*O).
     :param network:
     :param scores:
     :return:
+    """
+
+def viterbi(network, scores):
+    """
+    Uses the Viterbi algorithm to find the most probable path. The Viterbi algorithm is a dynamic programming algorithm
+    which finds the shortest path through a probability lattice (HMM).
+    :param network: a network which can query paths
+    :param scores: a set of candidates and scores for each data point
+    :return: a path
     """
 
     def find_next_step(observation_candidate, active_paths):
@@ -26,17 +37,12 @@ def pseudo_viterbi(network, scores):
             :param active_path: tuple of ([path], score)
             :return: score
             """
-            # print(active_path)
             if not active_path[0]:  # If there was a path that led to a dead end, the probability is zero.
-                print('warning: ', active_path)
+                print('WARNING: found path of length {}'.format(len(active_path)))
                 return 0
             pr_active_path = active_path[1]
             pr_candidate = observation_candidate[1]
             distance = 1 + network.shortest_distance_between_vertices(active_path[0][-1], observation_candidate[0])
-            print('(active_path_pr:', pr_active_path,
-                  '), (candidate_pr:', pr_candidate,
-                  '), (distance_divider:', distance,
-                  '), (real_score:', pr_active_path * pr_candidate / (distance ** 1.5), ')')
             return (pr_active_path * pr_candidate) / (distance ** 1.5)
 
         def update_path(path):
@@ -45,9 +51,7 @@ def pseudo_viterbi(network, scores):
             :param path: A list of vertex IDs
             :return: A list of vertex IDs
             """
-            # return path + [observation_candidate[0]]
             if not path:
-                print('warning')
                 return list()
             return path[:-1] + network.find_vertex_path(path[-1], observation_candidate[0], False)[0]
 
@@ -55,7 +59,6 @@ def pseudo_viterbi(network, scores):
         return update_path(best[0]), best[1]
 
     """ At the first observation, the possible paths are the candidates, and their emission probabilities. """
-    # possible_paths = list(scores[0].items())
     possible_paths = [([candidate], score) for candidate, score in scores[0].items()]
 
     """ For each observation, update the paths and probabilities. """
