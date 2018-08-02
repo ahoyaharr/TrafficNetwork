@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 
 
 def separator():
@@ -18,9 +19,16 @@ def get_JSON_files(path='data', absolute=False):
     files = [file for file in os.listdir(get_script_path(path)) if '.json' in file]
     return [get_script_path(path) + separator() + file for file in files] if absolute else files
 
-def read_file(s, dir='data'):
-    file = open(os.path.dirname(os.path.realpath(sys.argv[0])) + separator() + dir + separator() + s)
+def read_file(filename, dir='data'):
+    file = open(os.path.dirname(os.path.realpath(sys.argv[0])) + separator() + dir + separator() + filename)
     return file.read()
+
+def read_csv(filename, dir='data'):
+    with open(os.path.dirname(os.path.realpath(sys.argv[0])) + separator() + dir + separator() + filename) as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            yield row
+
 
 def get_JSON_strings():
     """
