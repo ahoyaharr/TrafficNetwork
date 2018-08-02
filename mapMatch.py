@@ -1,3 +1,5 @@
+from util.export import export as file_export
+
 class MapMatch:
     def __init__(self, network, tree, score, evaluation, data):
         """
@@ -28,7 +30,7 @@ class MapMatch:
         self.matches = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
         print('mm: searching for correct path...')
         self.result = self.evaluation(self.network, self.matches)
-        return self.result
+        return self.matches, self.result
 
     def find_knn(self, point, num_results=20):
         """
@@ -54,6 +56,31 @@ class MapMatch:
         self.score = score if score is not None else self.score
         self.evaluation = evaluation if evaluation is not None else self.evaluation
         self.match()
+
+    def update_data(self, data):
+        """
+        Updates the map match object with a new data set, and finds the result.
+        :param data:
+        :return:
+        """
+        self.data = data
+        return self.match()
+
+    def batch_process(self, data_items, date=""):
+        """
+        :param data_items: a list of data
+        :param date: optionally, a date string which will be prepended to the filename
+        :return:
+        """
+        cache_data = self.data, self.matches, self.result  # Save current information
+        print('beginning batch process on {0} data sets...'.format(len(data_items)))
+        for data in data_items:
+            self.update_data(data)
+            filename = data + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
+            file_export(*self.export_matches(), filename + "_matches")
+            file_export(*self.export_path(), filename + "_path")
+            print('\tfinished {0}...'.format(filename))
+        self.data, self.matches, self.result = cache_data  # Restore at end
 
     def export_matches(self):
         """
@@ -81,6 +108,6 @@ class MapMatch:
                  'lat1': first[1],
                  'lon2': second[0],
                  'lat2': second[1]} for first, second in
-                zip((self.network.node_locations[v_id] for v_id in self.result[:-1]), (self.network.node_locations[v_id] for v_id in self.result[1:] ))]
+                zip((self.network.node_locations[v_id] for v_id in self.result[:-1]),
+                    (self.network.node_locations[v_id] for v_id in self.result[1:]))]
         return header, path
-
