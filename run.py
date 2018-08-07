@@ -14,9 +14,11 @@ print('network constructed. number of nodes:', network.equalize_node_density(200
 
 mm = mapMatch.MapMatch(network,
                        util.m_tree.tree.MTree,
-                       map_match.scoring_fns.simple_distance_heading,
+                       map_match.scoring_fns.exp_distance_heading,
                        map_match.evaluation_fns.viterbi,
                        data)
+
+#mm = mapMatch.MapMatch.without_evaluation(network, util.m_tree.tree.MTree)
 
 path_header, path_result = mm.export_path()
 path_header.append('number')
