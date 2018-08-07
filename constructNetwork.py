@@ -57,6 +57,7 @@ class TrafficNetwork:
           turns: a list of dictionaries representing turns, further explained below.
         """
         for junction in junction_map['junctions']:
+            utils.print_progress(len(junction_map['junctions']), prefix='constructing network')
             """
             For each section, create the section if it does not exist. Otherwise, perform a lookup on the section.
             Add the entrance/exit node-edge pair to each.
@@ -216,6 +217,7 @@ class TrafficNetwork:
         """ Iterate through the vertices of each section. For each vertex v, evaluate edges for which v is a source.
         If an edge of weight greater than maximum_distance, then split it. """
         for section_id in self.sections:
+            utils.print_progress(len(self.sections), prefix='splitting edges')
             current_section = []  # Need to update the section data after splitting the edges.
             for source in self.sections[section_id]:
                 current_section.append(source)
@@ -413,6 +415,7 @@ class TrafficNetwork:
         edges_to_add = []
         """ Merge edges which are close together, and collect vertices/edges which should be removed/added. """
         for section_id in self.sections:
+            utils.print_progress(len(self.sections), prefix='merging edges')
             new_edges, redundant_vertices = self.merge_edges(self.sections[section_id], maximum_distance,
                                                              maximum_angle_delta, greedy)
             vertices_to_remove.extend(redundant_vertices)
@@ -422,6 +425,7 @@ class TrafficNetwork:
 
         """ Add the new edges and edge weights into the graph. """
         for edge, weight in edges_to_add:
+            utils.print_progress(len(edges_to_add), prefix='adding edges')
             new_edge = self.graph.add_edge(edge[0], edge[1], add_missing=False)
             self.edge_weights[new_edge] = weight
 
@@ -431,6 +435,7 @@ class TrafficNetwork:
         self.graph.remove_vertex(vertices_to_remove, fast=True)
         #  Vertices have now been reindexed. Update each section with the new vertex IDs.
         for section_id in self.sections:
+            utils.print_progress(len(self.sections), prefix='reindexing vertices')
             self.sections[section_id] = [find_vertex(self.graph, original_indices, v)[0] for v in
                                          self.sections[section_id]]
 
