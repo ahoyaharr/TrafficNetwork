@@ -20,6 +20,12 @@ class MapMatch:
         self.result = None
         self.match()
 
+    @classmethod
+    def without_evaluation(cls, network, tree):
+        dummy_score = lambda a, b, c, d: None
+        dummy_eval = lambda a, b: None
+        return cls(network, tree, dummy_score, dummy_eval, [])
+
     def match(self):
         """
         Matches each point in data to a position in network using a map matching algorithm
@@ -43,7 +49,7 @@ class MapMatch:
         point from the logical network. """
         v = self.network.graph.add_vertex()
         self.network.node_locations[v] = point
-        result = [item for item in self.tree.search(v, limit=num_results) if item is not None]
+        result = [item for item in self.tree.search(v, limit=num_results) if item is not None] #self.tree.search(v, limit=num_results)
         self.network.graph.remove_vertex(v, fast=True)
         return result
 
@@ -88,6 +94,7 @@ class MapMatch:
         util.export.export.
         :return: (list of string, list of dictionaries)
         """
+        assert self.matches is not None
         header = ['gps_lon', 'gps_lat', 'match_lon', 'match_lat', 'score']
         result = []
         for probe_data, candidate in zip(self.data, self.matches):
@@ -103,6 +110,7 @@ class MapMatch:
         Temporary.
         :return:
         """
+        assert self.result is not None
         header = ['lon1', 'lat1', 'lon2', 'lat2']
         path = [{'lon1': first[0],
                  'lat1': first[1],
