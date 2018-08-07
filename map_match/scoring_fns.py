@@ -1,11 +1,13 @@
 import math
 
-from util.utils import real_distance
+from util.utils import real_distance, print_progress
 
 
 def path_score(index, points, find_candidates, network):
     """
-
+    scores candidates by searching for candidates with 'good' (close) connectivity distance relative to all
+    previous candidates. poor accuracy because the accuracy of the kth point is dependent upon the accuracy
+    of the k-1th point.
     :param index:
     :param points:
     :param find_candidates:
@@ -45,7 +47,8 @@ def path_score(index, points, find_candidates, network):
     return path_score.cache[key]
 
 
-def simple_distance_heading(index, points, find_candidates, network, score_multiplier=100):
+def simple_distance_heading(index, points, find_candidates, network, score_multiplier=1000):
+
     point = points[index]
     scores = {}
     for candidate in find_candidates(point.as_list()):
@@ -70,7 +73,7 @@ def pow_distance_heading(index, points, find_candidates, network, distance_weigh
         heading_multiplier = 1 + math.cos(math.radians(point.bearing - network.node_heading[candidate]))
         distance = 1 / (1 + real_distance(point.as_list(), network.node_locations[candidate]))
         scores[candidate] = (distance ** distance_weight) * (heading_multiplier ** heading_weight) * (
-                    width ** width_weight)
+                width ** width_weight)
     sum_of_scores = sum(scores.values())
     return {candidate: (score / sum_of_scores) * score_multiplier for candidate, score in scores.items()}
 
@@ -89,7 +92,9 @@ def log_distance_heading(index, points, find_candidates, network, distance_weigh
     sum_of_scores = sum(scores.values())
     return {candidate: (score / sum_of_scores) * score_multiplier for candidate, score in scores.items()}
 
+
 def exp_distance_heading(index, points, find_candidates, network, exponent=2, score_multiplier=100):
+    print_progress(len(points), prefix='scoring candidates of {0}th data point'.format(index))
     point = points[index]
     scores = {}
     for candidate in find_candidates(point.as_list()):
@@ -101,6 +106,17 @@ def exp_distance_heading(index, points, find_candidates, network, exponent=2, sc
         scores[candidate] = (distance * heading_multiplier * width) ** exponent
     sum_of_scores = sum(scores.values())
     return {candidate: (score / sum_of_scores) * score_multiplier for candidate, score in scores.items()}
+
+def one_score(index, points, find_candidates, network, exponent=2, score_multiplier=100):
+    """
+    Test scoring function which assigns a score of 1 to every candidate
+    """
+    print_progress(len(points), prefix='scoring candidates of {0}th data point'.format(index))
+    point = points[index]
+    scores = {}
+    for candidate in find_candidates(point.as_list()):
+        scores[candidate] = 1
+    return scores
 
 # def first_score(point, candidates, network):
 #     """
