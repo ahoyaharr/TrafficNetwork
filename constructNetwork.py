@@ -161,6 +161,7 @@ class TrafficNetwork:
         self.node_id[junction_node] = junction['junctionID']
         self.node_speed_limit[junction_node] = self.node_speed_limit[previous_node]
         self.node_width[junction_node] = self.node_width[previous_node]
+        self.junctions[junction_node] = True
 
         # Look up geolocation of previous node, then compute heading to junction.
         previous_node_geolocation = self.node_locations[previous_node]
@@ -191,6 +192,7 @@ class TrafficNetwork:
         self.node_id[junction_node] = junction['junctionID']
         self.node_speed_limit[junction_node] = self.node_speed_limit[next_node]
         self.node_width[junction_node] = self.node_width[next_node]
+        self.junctions[junction_node] = True
 
         # Look up geolocation of next node, then compute heading to junction.
         next_node_geolocation = self.node_locations[next_node]
