@@ -1,8 +1,10 @@
+import datetime
 import json
 import math
+import sys
 import time
-import util.Shapes
 
+import util.Shapes
 from util.parser import get_JSON_strings
 
 
@@ -109,3 +111,36 @@ def angle_delta(a1, a2):
     """
     assert a1 <= 360 and a2 <= 360
     return (a2 - a1) % 360 if (a2 - a1) % 360 <= 180 else -((a1 - a2) % 360)
+
+
+# Print iterations progress
+def print_progress(total, prefix='', decimals=1, bar_length=25):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        bar_length  - Optional  : character length of bar (Int)
+    """
+    if not getattr(print_progress, 'iteration', None):
+        print_progress.iteration = 1
+        print_progress.start = datetime.datetime.now()
+
+    str_format = "{0:." + str(decimals) + "f}"
+    percents = str_format.format(100 * (print_progress.iteration / float(total)))
+    filled_length = int(round(bar_length * print_progress.iteration / float(total)))
+    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+
+    timestamp = str(datetime.datetime.now() - print_progress.start)
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', timestamp)),
+
+    if print_progress.iteration >= total:
+        sys.stdout.write('\n')
+        delattr(print_progress, 'iteration')  # Remove the counter
+        delattr(print_progress, 'start')  # Remove the start time
+    else:
+        print_progress.iteration += 1
+
+    sys.stdout.flush()

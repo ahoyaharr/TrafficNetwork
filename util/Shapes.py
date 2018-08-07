@@ -1,6 +1,6 @@
 from math import radians
 
-from util.parser import read_file
+from util.parser import read_csv
 
 
 class Point:
@@ -86,14 +86,27 @@ class DataPoint(Point):
         Converts a CSV of HERE probe data into a list of DataPoints.
         :param subdirectory:
         :param filename:
-        :return:
+        :return: a list of DataPoints representing a path if there is only a single path in the file, or a
+                 list of paths if there are many paths in the file.
         """
-        points = []
-        for line in read_file(s=filename, dir=subdirectory).splitlines():
-            line = line.split(',')
-            points.append(DataPoint(timestamp=line[1],
-                                    speed=line[5],
-                                    lon=line[3],
-                                    lat=line[2],
-                                    bearing=line[4]))
-        return points
+        """ Single path case. """
+        if 'TRIP_ID' not in read_csv(filename, subdirectory):
+            return [DataPoint(timestamp=line['SAMPLE_DATE'],
+                              speed=line['SPEED'],
+                              lon=line['LON'],
+                              lat=line['LAT'],
+                              bearing=line['HEADING']) for line in read_csv(filename, subdirectory)]
+
+        """ Multiple path case. """
+        paths = {}
+        for line in read_csv(filename, subdirectory):
+            next_point = DataPoint(timestamp=line['SAMPLE_DATE'],
+                                   speed=line['SPEED'],
+                                   lon=line['LON'],
+                                   lat=line['LAT'],
+                                   bearing=line['HEADING'])
+            try:
+                paths[line['TRIP_ID']].append(next_point)
+            except KeyError:
+                paths[line['TRIP_ID']] = [next_point]
+        return [list(path.values()) for path in paths]
