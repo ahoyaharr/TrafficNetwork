@@ -1,3 +1,5 @@
+from util import utils
+
 from collections import namedtuple
 
 import util.m_tree.mtree_funcs as functions
@@ -431,6 +433,7 @@ class MTree(object):
         :return:
         """
         for d in data:
+            utils.print_progress(len(data), prefix='constructing m-tree')
             self.add(d)
 
     def remove(self, data):
