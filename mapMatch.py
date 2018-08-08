@@ -1,4 +1,5 @@
 from util.export import export as file_export
+import datetime
 
 class MapMatch:
     def __init__(self, network, tree, score, evaluation, data):
@@ -47,10 +48,25 @@ class MapMatch:
         """
         """ Add point to the logical network, perform the k-nn search in the tree, and then remove the
         point from the logical network. """
+        #print('')
+
+        #start=datetime.datetime.now()
         v = self.network.graph.add_vertex()
         self.network.node_locations[v] = point
-        result = [item for item in self.tree.search(v, limit=num_results) if item is not None] #self.tree.search(v, limit=num_results)
+        #print('cost of adding: {0}'.format(datetime.datetime.now() - start))
+
+        #start=datetime.datetime.now()
+        search_result = self.tree.search(v, limit=num_results)
+        #print('cost of searching: {0}'.format(datetime.datetime.now() - start))
+
+
+        #start=datetime.datetime.now()
+        result = [item for item in search_result] #[item for item in search_result] #
+        #print('cost of materializing: {0}'.format(datetime.datetime.now() - start))
+
+        #start=datetime.datetime.now()
         self.network.graph.remove_vertex(v, fast=True)
+        #print('cost of removing: {0}'.format(datetime.datetime.now() - start))
         return result
 
     def update_fn(self, score=None, evaluation=None):
