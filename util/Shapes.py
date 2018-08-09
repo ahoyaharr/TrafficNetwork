@@ -90,7 +90,7 @@ class DataPoint(Point):
                  list of paths if there are many paths in the file.
         """
         """ Single path case. """
-        if 'TRIP_ID' not in read_csv(filename, subdirectory):
+        if 'TRIP_ID' not in next(read_csv(filename, subdirectory)):
             return [DataPoint(timestamp=line['SAMPLE_DATE'],
                               speed=line['SPEED'],
                               lon=line['LON'],
@@ -109,4 +109,5 @@ class DataPoint(Point):
                 paths[line['TRIP_ID']].append(next_point)
             except KeyError:
                 paths[line['TRIP_ID']] = [next_point]
-        return [list(path.values()) for path in paths]
+
+        return list(paths.values())
