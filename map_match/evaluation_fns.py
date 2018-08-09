@@ -105,7 +105,7 @@ def viterbi(network, scores):
             :return: score
             """
             if not active_path[0]:  # If there was a path that led to a dead end, the probability is zero.
-                print('WARNING: found path of length {}'.format(len(active_path)))
+                #print('WARNING: found path of length {}'.format(len(active_path)))
                 return 0
             pr_active_path = active_path[1]
             pr_candidate = observation_candidate[1]
@@ -118,7 +118,7 @@ def viterbi(network, scores):
             :param path: A list of vertex IDs
             :return: A list of vertex IDs
             """
-            if not path:
+            if not path:  # If there was a path that led to a dead end, return a path with no items.
                 return list()
             return path[:-1] + network.find_vertex_path(path[-1], observation_candidate[0], False)[0]
 
