@@ -3,10 +3,11 @@ import random
 import graph_tool
 import util.Shapes
 import util.utils
+import math
 
 
 def generate_path(network, section1=None, section2=None, min_path_length=30000, max_path_length=75000,
-                  max_offset_distance=200, max_offset_heading=25, omit_factor=1):
+                  max_offset_distance=500, max_offset_heading=25, omit_factor=1):
     """
     Finds a path of DataPoints through the network from section1 to section2, or between two random sections, within
     a provided range for acceptable length. Skews the points randomly under a threshold to add noise to the data.
@@ -54,7 +55,8 @@ def generate_path(network, section1=None, section2=None, min_path_length=30000, 
     if path_length > max_path_length:
         appx_node_dist = path_length / len(vertex_path)
         # Ceiling divide by the approximate distance between two vertices to determine how many vertices to trim.
-        diff = -(-(path_length - max_path_length) // appx_node_dist)
+        #diff = -(-(path_length - max_path_length) // appx_node_dist)
+        diff = math.ceil((path_length - max_path_length)/appx_node_dist)
         vertex_path = vertex_path[:int(len(vertex_path) - diff)]
 
     vertex_path = [v for v in vertex_path if v in vertices]
@@ -99,23 +101,23 @@ def export_artificial_data(offset_data, true_data, trip):
     :return: (list of header, list of dictionaries for artificial data, list of dictionaries for true data)
     """
     data_header = ['probe_id', 'sample_date', 'lat', 'lon', 'heading', 'speed', 'probe_data_provider', 'trip_id']
-    artificial_data = [{'probe_id': 0,
-                        'sample_date': str(d.timestamp + datetime.timedelta(seconds=i)),
-                        'lat': d.lat,
-                        'lon': d.lon,
-                        'heading': d.bearing,
-                        'speed': d.speed,
-                        'probe_data_provider': 'artificial',
-                        'trip_id': trip
+    artificial_data = [{'PROBE_ID': 0,
+                        'SAMPLE_DATE': str(d.timestamp + datetime.timedelta(seconds=i)),
+                        'LAT': d.lat,
+                        'LON': d.lon,
+                        'HEADING': d.bearing,
+                        'SPEED': d.speed,
+                        'PROBE_DATA_PROVIDER': 'artificial',
+                        'TRIP_ID': trip
                         } for i, d in enumerate(offset_data)]
-    true_data = [{'probe_id': 0,
-                  'sample_date': str(d.timestamp + datetime.timedelta(seconds=i)),
-                  'lat': d.lat,
-                  'lon': d.lon,
-                  'heading': d.bearing,
-                  'speed': d.speed,
-                  'probe_data_provider': 'artificial',
-                  'trip_id': trip
+    true_data = [{'PROBE_ID': 0,
+                  'SAMPLE_DATE': str(d.timestamp + datetime.timedelta(seconds=i)),
+                  'LAT': d.lat,
+                  'LON': d.lon,
+                  'HEADING': d.bearing,
+                  'SPEED': d.speed,
+                  'PROBE_DATA_PROVIDER': 'artificial',
+                  'TRIP_ID': trip
                   } for i, d in enumerate(true_data)]
     return data_header, artificial_data, true_data
 
