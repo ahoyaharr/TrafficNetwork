@@ -1,4 +1,5 @@
 import math
+import datetime
 
 from util.utils import real_distance, print_progress
 
@@ -111,11 +112,27 @@ def one_score(index, points, find_candidates, network, exponent=2, score_multipl
     """
     Test scoring function which assigns a score of 1 to every candidate
     """
-    print_progress(len(points), prefix='scoring candidates of {0}th data point'.format(index))
+    start = datetime.datetime.now()
     point = points[index]
     scores = {}
-    for candidate in find_candidates(point.as_list()):
+
+    start = datetime.datetime.now()
+    candidates = find_candidates(point.as_list())
+    print('found candidates', str(datetime.datetime.now() - start))
+
+    start = datetime.datetime.now()
+    for candidate in candidates:
+        a = candidate.__hash__()
+    print('computed hashes', str(datetime.datetime.now() - start))
+
+    start = datetime.datetime.now()
+    for candidate in candidates:
         scores[candidate] = 1
+    print('assigned score', str(datetime.datetime.now() - start))
+
+
+    start = datetime.datetime.now()
+    print('')
     return scores
 
 # def first_score(point, candidates, network):

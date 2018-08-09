@@ -1,4 +1,5 @@
 from util.export import export as file_export
+import datetime
 
 class MapMatch:
     def __init__(self, network, tree, score, evaluation, data):
@@ -47,10 +48,25 @@ class MapMatch:
         """
         """ Add point to the logical network, perform the k-nn search in the tree, and then remove the
         point from the logical network. """
+        #print('')
+
+        #start=datetime.datetime.now()
         v = self.network.graph.add_vertex()
         self.network.node_locations[v] = point
-        result = [item for item in self.tree.search(v, limit=num_results) if item is not None] #self.tree.search(v, limit=num_results)
+        #print('cost of adding: {0}'.format(datetime.datetime.now() - start))
+
+        #start=datetime.datetime.now()
+        search_result = self.tree.search(v, limit=num_results)
+        #print('cost of searching: {0}'.format(datetime.datetime.now() - start))
+
+
+        #start=datetime.datetime.now()
+        result = [item for item in search_result] #[item for item in search_result] #
+        #print('cost of materializing: {0}'.format(datetime.datetime.now() - start))
+
+        #start=datetime.datetime.now()
         self.network.graph.remove_vertex(v, fast=True)
+        #print('cost of removing: {0}'.format(datetime.datetime.now() - start))
         return result
 
     def update_fn(self, score=None, evaluation=None):
@@ -72,21 +88,26 @@ class MapMatch:
         self.data = data
         return self.match()
 
-    def batch_process(self, data_items, date=""):
+    def batch_process(self, data_items, date="", score=None, evaluation=None):
         """
         :param data_items: a list of data
         :param date: optionally, a date string which will be prepended to the filename
         :return:
         """
-        cache_data = self.data, self.matches, self.result  # Save current information
+        cache_data = self.data, self.matches, self.result, self.score, self.evaluation  # Save current information
+        if score:
+            self.score = score
+        if evaluation:
+            self.evaluation = evaluation
+
         print('beginning batch process on {0} data sets...'.format(len(data_items)))
         for data in data_items:
             self.update_data(data)
-            filename = data + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
+            filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
             file_export(*self.export_matches(), filename + "_matches")
             file_export(*self.export_path(), filename + "_path")
             print('\tfinished {0}...'.format(filename))
-        self.data, self.matches, self.result = cache_data  # Restore at end
+        self.data, self.matches, self.result, self.score, self.evaluation = cache_data  # Restore at end
 
     def export_matches(self):
         """

@@ -371,7 +371,7 @@ class MTree(object):
     ResultItem = namedtuple('ResultItem', 'data, distance')
 
     def __init__(self,
-                 min_node_capacity=50, max_node_capacity=None,
+                 min_node_capacity=10, max_node_capacity=None,
                  distance_function=functions.euclidean_distance,
                  split_function=functions.make_split_function(functions.random_promotion, functions.balanced_partition)
                  ):
