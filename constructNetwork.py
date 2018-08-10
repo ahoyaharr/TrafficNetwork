@@ -4,6 +4,7 @@ from graph_tool.all import *
 
 from util import Shapes as shapes
 from util import utils
+from util.export import build_linestring
 
 
 class TrafficNetwork:
@@ -527,9 +528,13 @@ class TrafficNetwork:
                  'heading': self.node_heading[v]} for v in self.graph.vertices()]
 
     def export_edges(self):
-        return ['lon1', 'lat1', 'lon2', 'lat2', 'weight'], \
+        return ['lon1', 'lat1', 'lon2', 'lat2', 'weight', 'line_geom'], \
                [{'lon1': self.node_locations[e.source()][0],
                  'lat1': self.node_locations[e.source()][1],
                  'lon2': self.node_locations[e.target()][0],
                  'lat2': self.node_locations[e.target()][1],
-                 'weight': self.edge_weights[e]} for e in self.graph.edges()]
+                 'weight': self.edge_weights[e],
+                 'line_geom': build_linestring(
+                     shapes.Point.from_list(self.node_locations[e.source()]).as_geometry(),
+                     shapes.Point.from_list(self.node_locations[e.target()]).as_geometry())
+                 } for e in self.graph.edges()]

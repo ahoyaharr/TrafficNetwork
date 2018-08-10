@@ -1,5 +1,8 @@
 import csv
 
+import shapely.geometry as geom
+from shapely.wkb import loads
+
 import util.parser as p
 
 
@@ -24,3 +27,15 @@ def export(header, data, filename):
         f.writeheader()
         for row in data:
             f.writerow(row)
+
+
+def build_linestring(p1, p2):
+    """
+    Constructs a hex-encoded linestring given two hex-encoded points
+    :param p1:
+    :param p2:
+    :return:
+    """
+    p1 = loads(p1, hex=True)
+    p2 = loads(p2, hex=True)
+    return geom.LineString([p1, p2]).wkb_hex

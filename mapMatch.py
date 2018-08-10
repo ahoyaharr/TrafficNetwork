@@ -1,4 +1,5 @@
-from util.export import export as file_export
+from util.Shapes import Point
+from util.export import export as file_export, build_linestring
 import datetime
 
 class MapMatch:
@@ -116,14 +117,21 @@ class MapMatch:
         :return: (list of string, list of dictionaries)
         """
         assert self.matches is not None
-        header = ['gps_lon', 'gps_lat', 'match_lon', 'match_lat', 'score']
+        header = ['gps_lon', 'gps_lat', 'match_lon', 'match_lat', 'score', 'gps_point', 'match_point', 'line_geom']
         result = []
         for probe_data, candidate in zip(self.data, self.matches):
             result.extend({'gps_lon': probe_data.as_list()[0],
                            'gps_lat': probe_data.as_list()[1],
                            'match_lon': self.network.node_locations[v_id][0],
                            'match_lat': self.network.node_locations[v_id][1],
-                           'score': score} for v_id, score in candidate.items())
+                           'score': score,
+                           'gps_point': probe_data.as_geometry(),
+                           'match_point': Point.from_list(self.network.node_locations[v_id]).as_geometry(),
+                           'line_geom': build_linestring(
+                               probe_data.as_geometry(),
+                               Point.from_list(self.network.node_locations[v_id]).as_geometry())
+                           } for v_id, score in candidate.items())
+
         return header, result
 
     def export_path(self):
@@ -132,11 +140,12 @@ class MapMatch:
         :return:
         """
         assert self.result is not None
-        header = ['lon1', 'lat1', 'lon2', 'lat2']
+        header = ['lon1', 'lat1', 'lon2', 'lat2', 'line_geom']
         path = [{'lon1': first[0],
                  'lat1': first[1],
                  'lon2': second[0],
-                 'lat2': second[1]} for first, second in
-                zip((self.network.node_locations[v_id] for v_id in self.result[:-1]),
-                    (self.network.node_locations[v_id] for v_id in self.result[1:]))]
+                 'lat2': second[1],
+                 'line_geom': build_linestring(Point(first), Point(second))
+                 } for first, second in zip((self.network.node_locations[v_id] for v_id in self.result[:-1]),
+                                            (self.network.node_locations[v_id] for v_id in self.result[1:]))]
         return header, path

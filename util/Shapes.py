@@ -1,4 +1,5 @@
 from math import radians
+import shapely.geometry as geom
 
 from util.parser import read_csv
 
@@ -7,7 +8,6 @@ class Point:
     """
     Represents a WGS-84 GPS point.
     """
-
     def __init__(self, lon, lat, bearing=None):
         self.lon = float(lon)
         self.lon_as_rad = radians(self.lon)
@@ -20,7 +20,11 @@ class Point:
         assert self.validate_point(), str(self.lon) + ', ' + str(self.lat) + ', ' + str(self.bearing)
 
     def __repr__(self):
-        return str(self.lon) + ',' + str(self.lat) + ' @ ' + str(self.bearing) + '\n'
+        repr_string = str(self.lon) + ',' + str(self.lat)
+        if self.bearing:
+            repr_string += + ' @ ' + str(self.bearing)
+        repr_string += '\n'
+        return repr_string
 
     @classmethod
     def from_list(cls, l):
@@ -54,6 +58,8 @@ class Point:
     def as_dict(self):
         return {'lon': self.lon, 'lat': self.lat, 'bearing': self.bearing}
 
+    def as_geometry(self):
+        return geom.Point(self.as_list()).wkb_hex
 
 class DataPoint(Point):
     """
