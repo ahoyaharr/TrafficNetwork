@@ -103,7 +103,7 @@ def exp_distance_heading(index, points, find_candidates, network, exponent=2, sc
         if width == 0:  # Exclude all lanes with zero weight
             continue
         heading_multiplier = 1 + math.cos(math.radians(point.bearing - network.node_heading[candidate]))
-        distance = 1 / (1 + real_distance(point.as_list(), network.node_locations[candidate]))
+        distance = 1 / (math.log(math.e + real_distance(point.as_list(), network.node_locations[candidate])))
         scores[candidate] = (distance * heading_multiplier * width) ** exponent
     sum_of_scores = sum(scores.values())
     return {candidate: (score / sum_of_scores) * score_multiplier for candidate, score in scores.items()}

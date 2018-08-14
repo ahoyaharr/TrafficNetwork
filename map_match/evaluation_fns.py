@@ -110,7 +110,7 @@ def viterbi(network, scores):
             pr_active_path = active_path[1]
             pr_candidate = observation_candidate[1]
             distance = 1 + network.shortest_distance_between_vertices(active_path[0][-1], observation_candidate[0])
-            return (pr_active_path * pr_candidate) / (distance ** 1.5)
+            return (pr_active_path * pr_candidate) / (distance ** 2)
 
         def update_path(path):
             """
