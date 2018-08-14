@@ -145,7 +145,8 @@ class MapMatch:
                  'lat1': first[1],
                  'lon2': second[0],
                  'lat2': second[1],
-                 'line_geom': build_linestring(Point(first), Point(second))
+                 'line_geom': build_linestring(Point.from_list(first).as_geometry(),
+                                               Point.from_list(second).as_geometry())
                  } for first, second in zip((self.network.node_locations[v_id] for v_id in self.result[:-1]),
                                             (self.network.node_locations[v_id] for v_id in self.result[1:]))]
         return header, path
