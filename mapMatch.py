@@ -18,15 +18,32 @@ class MapMatch:
         self.score = score
         self.evaluation = evaluation
         self.data = data
+        self.score_args = None
+        self.evaluation_args = None
         self.matches = None
         self.result = None
-        self.match()
 
     @classmethod
     def without_evaluation(cls, network, tree):
+        """
+        Creates a map matching object with a complete network and spatial index, but no data or algorithms.
+        :param network:
+        :param tree:
+        :return:
+        """
         dummy_score = lambda a, b, c, d: None
         dummy_eval = lambda a, b: None
         return cls(network, tree, dummy_score, dummy_eval, [])
+
+    def specify_configuration(self, score_args=None, evaluation_args=None):
+        """
+        Specifies a set of arguments for each algorithm function to use.
+        :param score_args: a tuple of arguments for the score function
+        :param evaluation_args: a tuple of arguments for the evaluation function
+        :return:
+        """
+        self.score_args = score_args
+        self.evaluation_args = evaluation_args
 
     def match(self):
         """
@@ -35,9 +52,18 @@ class MapMatch:
         :return: The result, in the form of the return of evaluation.
         """
         print('mm: finding/scoring candidates...')
-        self.matches = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
+        if self.score_args:
+            self.matches = [self.score(i, self.data, self.find_knn, self.network, *self.score_args)
+                            for i in range(len(self.data))]
+        else:
+            self.matches = [self.score(i, self.data, self.find_knn, self.network) for i in range(len(self.data))]
+
         print('mm: searching for correct path...')
-        self.result = self.evaluation(self.network, self.matches)
+        if self.evaluation_args:
+            self.result = self.evaluation(self.network, self.matches, *self.evaluation_args)
+        else:
+            self.result = self.evaluation(self.network, self.matches)
+
         return self.matches, self.result
 
     def find_knn(self, point, num_results=20):
@@ -101,13 +127,14 @@ class MapMatch:
         if evaluation:
             self.evaluation = evaluation
 
-        print('beginning batch process on {0} data sets...'.format(len(data_items)))
-        for data in data_items:
-            self.update_data(data)
-            filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
-            file_export(*self.export_matches(), filename + "_matches")
-            file_export(*self.export_path(), filename + "_path")
-            print('\tfinished {0}...'.format(filename))
+        if self.score and self.evaluation:
+            print('beginning batch process on {0} data sets...'.format(len(data_items)))
+            for data in data_items:
+                self.update_data(data)
+                filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
+                file_export(*self.export_matches(), filename + "_matches")
+                file_export(*self.export_path(), filename + "_path")
+                print('\tfinished {0}...'.format(filename))
         self.data, self.matches, self.result, self.score, self.evaluation = cache_data  # Restore at end
 
     def export_matches(self):
