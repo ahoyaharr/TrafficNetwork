@@ -1,5 +1,7 @@
 import math
 
+from itertools import groupby
+
 from graph_tool.all import *
 
 from util import Shapes as shapes
@@ -538,3 +540,11 @@ class TrafficNetwork:
                      shapes.Point.from_list(self.node_locations[e.source()]).as_geometry(),
                      shapes.Point.from_list(self.node_locations[e.target()]).as_geometry())
                  } for e in self.graph.edges()]
+
+    def to_sections(self, path):
+        """
+        Converts a list of vertices to a list of sections
+        :param path: a list of vertex ids
+        :return:
+        """
+        return list(map(lambda tup: tup[0], groupby(path, key=lambda v_id: self.node_id[v_id])))
