@@ -103,18 +103,20 @@ def exp_distance_heading(index, points, find_candidates, network, exponent=2, sc
             continue
         heading_multiplier = 1 + math.cos(math.radians(point.bearing - network.node_heading[candidate]))
         distance = 1 / (math.log(math.e + real_distance(point.as_list(), network.node_locations[candidate])))
-        scores[candidate] = (distance * heading_multiplier * width) ** exponent
+        scores[candidate] = (distance * heading_multiplier) ** exponent
     sum_of_scores = sum(scores.values())
     return {candidate: (score / sum_of_scores) * score_multiplier for candidate, score in scores.items()}
 
 
-def general_distance_heading(index, points, find_candidates, network, heading_score, distance_score, combiner):
+def general_distance_heading(index, points, find_candidates, network,
+                             width_score, heading_score, distance_score, combiner):
     """
     A general score function, which accepts functions to evaluate each parameter.
     :param index:
     :param points:
     :param find_candidates:
     :param network:
+    :param width_score: fn which maps the width to a real number
     :param heading_score: fn which maps the difference in bearing to a real number
     :param distance_score: fn which maps the distance in feet to a real number
     :param combiner: 3 argument fn which maps the scores for heading, distance and width to a real number
@@ -127,9 +129,25 @@ def general_distance_heading(index, points, find_candidates, network, heading_sc
         width = network.node_width[candidate]
         if width == 0:  # Exclude all lanes with zero weight
             continue
-        hs = heading_score(point.bearing - network.node_heading[candidate])
-        ds = distance_score(real_distance(point.as_list(), network.node_locations[candidate]))
-        scores[candidate] = combiner(hs, ds, width)
+        try:
+            width = width_score(width)
+        except:
+            width = 0
+
+        try:
+            hs = heading_score(point.bearing - network.node_heading[candidate])
+        except:
+            hs = 0
+
+        try:
+            ds = distance_score(real_distance(point.as_list(), network.node_locations[candidate]))
+        except:
+            ds = 0
+
+        try:
+            scores[candidate] = combiner(hs, ds, width)
+        except:
+            scores[candidate] = 0
 
     sum_of_scores = sum(scores.values())
     return {candidate: (score / sum_of_scores) for candidate, score in scores.items()}
