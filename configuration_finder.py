@@ -59,15 +59,56 @@ class ConfigurationFinder:
                                  'manipulation': self.function_factory(self.math_options, self.value_manipulation),
                                  'reduction': self.function_factory(None, self.combiner_options)}
 
+    def score_path(self, candidate, key):
+        def levenshtein_distance(s, t):
+            """
+            Computes the Levenshtein distance between two paths.
+            """
+            # distance_matrix is a len(s) x len(t) sized matrix.
+            distance_matrix = [[0] * len(t) for _ in range(len(s))]
+
+            for index, section in enumerate(s):
+                # The distance between the first k sections of s and an empty path is k.
+                distance_matrix[index][0] = index
+
+            for index, section in enumerate(t):
+                # The distance between the first k sections to t and an empty path is k.
+                distance_matrix[0][index] = index
+
+            for t_index in range(len(t)):
+                for s_index in range(len(s)):
+                    if s[s_index] == t[t_index]:  # If the paths are the same, no operation is required.
+                        distance_matrix[s_index][t_index] = distance_matrix[s_index - 1][t_index - 1]
+                    else:  # Otherwise, the paths are not the same so an operation is required.
+                        minimum_neighbour = min(
+                            distance_matrix[s_index - 1][t_index],  # Delete
+                            distance_matrix[s_index][t_index - 1],  # Insert
+                            distance_matrix[s_index - 1][t_index - 1])  # Substitute
+
+                        distance_matrix[s_index][t_index] = minimum_neighbour + 1
+
+            return distance_matrix[-1][-1]
+
+        candidate_as_sections = self.mm.network.to_sections(candidate)
+        key_as_sections = self.mm.network.to_sections(key)
+
+        edit_distance = levenshtein_distance(candidate_as_sections, key_as_sections)
+
+        maximum_path_distance = max(len(candidate_as_sections), len(key_as_sections))
+
+        return (maximum_path_distance - edit_distance) / maximum_path_distance
+
     def fn_builder(self, configuration, complexity, r, previous_function=None):
         if not self.factory_mappings[configuration].outer:  # Function does not chain, so select base fn and return.
             factory_option = random.choice(self.factory_mappings[configuration].inner)
             number_option = random.choice(r)
-            return self.configuration(factory_option.fn(number_option), '{0}({1})'.format(factory_option.name, number_option), 0)
+            return self.configuration(factory_option.fn(number_option),
+                                      '{0}({1})'.format(factory_option.name, number_option), 0)
         elif not previous_function:  # First entry, so randomly select base fn and recurse.
             factory_option = random.choice(self.factory_mappings[configuration].inner)
             number_option = random.choice(r)
-            new_fn = self.configuration(factory_option.fn(number_option), '{0}({1})'.format(factory_option.name, number_option), 0)
+            new_fn = self.configuration(factory_option.fn(number_option),
+                                        '{0}({1})'.format(factory_option.name, number_option), 0)
         elif complexity <= 0:  # Construction is finished, so return the fn.
             return previous_function
         else:  # Otherwise continue to chain functions.
