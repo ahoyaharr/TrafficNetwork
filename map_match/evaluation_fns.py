@@ -79,12 +79,13 @@ def viterbi_optimized(network, scores):
     return best_subpath.path
 
 
-def viterbi(network, scores):
+def viterbi(network, scores, distance_score=lambda d: d ** 2):
     """
     Uses the Viterbi algorithm to find the most probable path. The Viterbi algorithm is a dynamic programming algorithm
     which finds the shortest path through a probability lattice (HMM).
     :param network: a network which can query paths
     :param scores: a set of candidates and scores for each data point
+    :param distance_score: a function which converts the distance between two candidates to a transition score
     :return: a path
     """
 
@@ -110,7 +111,7 @@ def viterbi(network, scores):
             pr_active_path = active_path[1]
             pr_candidate = observation_candidate[1]
             distance = 1 + network.shortest_distance_between_vertices(active_path[0][-1], observation_candidate[0])
-            return (pr_active_path * pr_candidate) / (distance ** 2)
+            return (pr_active_path * pr_candidate) / (distance_score(distance))
 
         def update_path(path):
             """
