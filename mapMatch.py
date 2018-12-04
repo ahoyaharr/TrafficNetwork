@@ -131,7 +131,12 @@ class MapMatch:
             print('beginning batch process on {0} data sets...'.format(len(data_items)))
             for data in data_items:
                 self.update_data(data)
-                filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
+                try:
+                    filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
+                except IndexError:
+                    filename = date + "_no_result"
+                if len(self.result) == 0:
+                    print(self.data)
                 file_export(*self.export_matches(), filename + "_matches")
                 file_export(*self.export_path(), filename + "_path")
                 print('\tfinished {0}...'.format(filename))
@@ -162,10 +167,6 @@ class MapMatch:
         return header, result
 
     def export_path(self):
-        """
-        Temporary.
-        :return:
-        """
         assert self.result is not None
         header = ['lon1', 'lat1', 'lon2', 'lat2', 'line_geom']
         path = [{'lon1': first[0],
