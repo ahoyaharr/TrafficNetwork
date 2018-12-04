@@ -8,6 +8,7 @@ from util import Shapes as shapes
 from util import utils
 from util.export import build_linestring
 
+SHORT_DISTANCE = 0.0000001
 
 class TrafficNetwork:
     """
@@ -108,7 +109,7 @@ class TrafficNetwork:
         """
         origin_section = self.sections[origin]
         destination_section = self.sections[destination]
-        "TODO: The junction of both origin and destination must be the same. Assert this."
+        "The junction of both origin and destination must be the same."
         """A turn transitions a vehicle from the last segment of the origin to the first
         segment of the destination."""
         edge = self.graph.add_edge(origin_section[-1], destination_section[0])
@@ -287,8 +288,6 @@ class TrafficNetwork:
             :return:
             """
             e1_source = section.index(e1[0])
-            e1_target = section.index(e1[1])
-            e2_source = section.index(e2[0])
             e2_target = section.index(e2[1])
 
             """ Given a pair of vertices, call angle_delta between them. """
@@ -482,7 +481,8 @@ class TrafficNetwork:
         v1 = self.graph.vertex(vertex_id1)
         v2 = self.graph.vertex(vertex_id2)
         vertices, edges = graph_tool.topology.shortest_path(self.graph, v1, v2, weights=self.edge_weights)
-
+        if v1 == v2:
+            vertices = [v1, v1]
         if not as_network_object:
             vertices = [self.graph.vertex_index[vertex] for vertex in vertices]
             edges = [self.graph.edge_index[edge] for edge in edges]
@@ -490,6 +490,8 @@ class TrafficNetwork:
         return vertices, edges
 
     def shortest_distance_between_vertices(self, v1, v2):
+        if v1 == v2:
+            return SHORT_DISTANCE
         return graph_tool.topology.shortest_distance(self.graph, v1, v2, weights=self.edge_weights)
 
     def get_exit_junction(self, id):

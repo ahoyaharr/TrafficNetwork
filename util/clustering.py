@@ -1,5 +1,4 @@
 import math
-import csv
 import os, sys
 import datetime
 
@@ -35,7 +34,9 @@ def real_distance(cp1, cp2):
 
 def cluster_compare(prev, cur, dist_thres=200, time_thres=45):
     """
-    Units: max_dist in feet and max_time in seconds
+    Units: dist_thres in feet and time_thres in seconds
+    A helper function to determine whether or not the current point can be clustered, given the previous.
+    Returns True if we should keep both points, otherwise False.
     """
     cur_time = datetime.datetime.strptime(cur[1],  "%Y-%m-%d %H:%M:%S")
     prev_time = datetime.datetime.strptime(prev[1],  "%Y-%m-%d %H:%M:%S")
@@ -47,6 +48,7 @@ def cluster_compare(prev, cur, dist_thres=200, time_thres=45):
     else:
         # we can cluster these together
         return False
+    # return time_delta >= time_thres or dist_delta >= dist_thres
 
 
 def cluster_file(subdir, file):
@@ -76,17 +78,18 @@ def cluster_file(subdir, file):
             prev = cur
     clustered_file = os.path.dirname(os.path.realpath(sys.argv[0])) + separator() + subdir + separator() + "clustered_" + file
     with open (clustered_file, 'w') as text_file:
-        # print("clustered contents: ", clustered_contents)
         text_file.write("".join(clustered_contents))
-        # write must take in a string
     return clustered_file
 
 
-def get_files(path, absolute=False, system_type=SYSTEM_TYPE):
-    # Returns a list of paths to uncorrected files in a directory.
-    # path: the path to the directory
-    # absolute: whether or not the filePath should be relative, i.e. ~/myFile.file vs. ~/.../myFile.file
-    # system_type: 'windows' or 'unix'
+def get_files(path, absolute=False):
+    """
+    Returns a list of paths to uncorrected files in a directory.
+    :param path: the path to the directory
+    :param absolute: whether or not the filePath should be relative, i.e. ~/myFile.file vs. ~/.../myFile.file
+    :param system_type: 'windows' or 'unix'
+    :return:
+    """
     def get_script_path(p):
         return os.path.dirname(os.path.realpath(sys.argv[0])) + separator() + p
 

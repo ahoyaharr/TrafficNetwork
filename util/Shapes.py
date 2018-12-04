@@ -22,7 +22,7 @@ class Point:
     def __repr__(self):
         repr_string = str(self.lon) + ',' + str(self.lat)
         if self.bearing:
-            repr_string += + ' @ ' + str(self.bearing)
+            repr_string += ' @ ' + str(self.bearing)
         repr_string += '\n'
         return repr_string
 
