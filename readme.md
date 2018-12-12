@@ -6,8 +6,8 @@
 
 ###### Installation Instructions (Ubuntu):
 1. Open `/etc/apt/sources.list` and add the following lines
-    1. `deb http://downloads.skewed.de/apt/xenial xenial universe`
-    2. `deb-src http://downloads.skewed.de/apt/xenial xenial universe`
+    * `deb http://downloads.skewed.de/apt/xenial xenial universe`
+    * `deb-src http://downloads.skewed.de/apt/xenial xenial universe`
 2. Update the package manager by running 
     * `sudo apt-get update`
 3. Validate the updated package manager by running
@@ -15,13 +15,13 @@
 4. Finally, install graph-tools by running
     * `sudo apt-get install python3-graph-tool`
 
-##### Shapely
-[Homepage](www.lfd.uci.edu/~gohlke/pythonlibs/#shapely)
-1. Download the .whl file that corresponds to your version of Python and your machine.
-    1. `pip3 install wheel`
-    2. `pip3 install 'your_package_full_name'.whl`
-
 ##### Python 3
+- Install Python3 using `sudo apt-get install python3`
+
+##### Shapely
+- Install Shapely using `sudo apt-get install python3-shapely`
+
+
 
 ## Flow Chart
 ![Alt text](https://github.com/ahoyaharr/TrafficNetwork/blob/master/util/images/TrafficNetwork.png "Title")
