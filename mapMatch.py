@@ -6,7 +6,7 @@ class MapMatch:
     def __init__(self, network, tree, score, evaluation, data):
         """
         :param network: An object containing a logical network of nodes and a distance function, vertex_distance.
-        :param tree: A data structure which can be constructed network.vertex_distance and populated by add_all.
+        :param tree: A data structure which can be constructed using network.vertex_distance and populated by add_all.
         :param score: A function which accepts a network, a point, and a sequence of candidate points.
         :param evaluation: A function which accepts a network and the result of calling score on each data point.
         :param data: Sequence of DataPoints.
@@ -109,17 +109,14 @@ class MapMatch:
     def update_data(self, data):
         """
         Updates the map match object with a new data set, and finds the result.
-        :param data:
-        :return:
         """
         self.data = data
         return self.match()
 
-    def batch_process(self, data_items, date="", score=None, evaluation=None):
+    def batch_process(self, data_items, date="", score=None, evaluation=None, min_path=15):
         """
         :param data_items: a list of data
         :param date: optionally, a date string which will be prepended to the filename
-        :return:
         """
         cache_data = self.data, self.matches, self.result, self.score, self.evaluation  # Save current information
         if score:
@@ -129,7 +126,14 @@ class MapMatch:
 
         if self.score and self.evaluation:
             print('beginning batch process on {0} data sets...'.format(len(data_items)))
-            for data in data_items:
+            for trip, data in enumerate(data_items):
+                if not data:
+                    print("no data being passed in ")
+                    print("trip: ", trip)
+                    break
+                if len(data) < min_path:
+                    print("too few points in trip", trip)
+                    continue
                 self.update_data(data)
                 try:
                     filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
@@ -168,7 +172,20 @@ class MapMatch:
 
     def export_path(self):
         assert self.result is not None
+        print("result: ", self.result)
         header = ['lon1', 'lat1', 'lon2', 'lat2', 'line_geom']
+        if len(self.result) == 0:
+            print(self.data)
+            print("no result")
+            return header, [{'lon1': None,
+                             'lat1': None,
+                             'lon2': None,
+                             'lat2': None,
+                             'line_geom': None}]
+        if len(self.result) == 1:
+            print(self.data)
+            print("result length of 1")
+
         path = [{'lon1': first[0],
                  'lat1': first[1],
                  'lon2': second[0],
