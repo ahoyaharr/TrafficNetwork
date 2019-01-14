@@ -7,29 +7,23 @@ import util.utils
 import util.export
 from constructNetwork import TrafficNetwork
 
+# Decode the JSON of junction and section information to construct the network.
 junction_map, section_map = util.utils.decode_json()
 network = TrafficNetwork(junction_map, section_map)
-# data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st_ordered.csv', subdirectory='data')
-data = util.Shapes.DataPoint.convert_dataset(filename='serena_paths.csv', subdirectory='data')
+
+# Use this to convert a dataset into points that our Map Matcher can use. Place the file of data into the data
+# subdirectory and change filename to be a string of the name of the file you would like to run.
+# Example usage:
+#  data = util.Shapes.DataPoint.convert_dataset(filename='i210_2017_10_22_id960801st_ordered.csv', subdirectory='data')
+
+data = util.Shapes.DataPoint.convert_dataset(filename='clipped_clustered_45sec_20171001CONSUMER.csv')
 print('network constructed. number of nodes:', network.equalize_node_density(200, 15, greedy=True))
 
-# mm = mapMatch.MapMatch(network,
-#                        util.m_tree.tree.MTree,
-#                        map_match.scoring_fns.exp_distance_heading,
-#                        map_match.evaluation_fns.viterbi,
-#                        data)
+# Call the map matching algorithm on your data. The second argument to batch_process will be the prefix of the
+# outputted filenames - we recommend changing this to match the filename you passed in above.
 
 mm = mapMatch.MapMatch.without_evaluation(network, util.m_tree.tree.MTree)
 mm.batch_process(data,
-                 'serena_artificial_paths',
+                 'clipped_clustered_45sec_20171001CONSUMER',
                  score=map_match.scoring_fns.exp_distance_heading,
                  evaluation=map_match.evaluation_fns.viterbi)
-
-# path_header, path_result = mm.export_path()
-# path_header.append('number')
-# for i in range(len(path_result)):
-#     path_result[i]['number'] = i
-#
-# print('size of path:', len(path_result))
-#
-# match_header, match_result = mm.export_matches()
