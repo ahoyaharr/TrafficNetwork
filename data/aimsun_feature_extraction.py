@@ -12,9 +12,13 @@ import os
 import json
 import math
 
+""" Change path to be the location on your machine where you would like the extracted files to be written.
+We recommend the 'data' directory of the repository."""
+# Note: Hardcoded path because the current working directory changes once the file is added as an Aimsun script.
+path='C:\Users\Serena\connected_corridors\TrafficNetwork\data'
+
 WINDOWS_ENCODING = '\\'
 UNIX_ENCODING = '/'
-
 SYSTEM_TYPE = 'windows'
 
 MPH_CONSTANT = 0.62137119 #multiply km/hr to convert to mph
@@ -178,9 +182,7 @@ def separator():
     return WINDOWS_ENCODING if SYSTEM_TYPE == 'windows' else UNIX_ENCODING
 
 
-gui=GKGUISystem.getGUISystem().getActiveGui()
+gui = GKGUISystem.getGUISystem().getActiveGui()
 model = gui.getActiveModel()
-
-path='C:\Users\Serena\connected_corridors\TrafficNetwork\data'
 
 build_json(model, path)
