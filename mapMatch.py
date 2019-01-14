@@ -172,7 +172,7 @@ class MapMatch:
 
     def export_path(self):
         assert self.result is not None
-        print("result: ", self.result)
+        # print("result: ", [self.network.node_id[v_id] for v_id in self.result])
         header = ['lon1', 'lat1', 'lon2', 'lat2', 'line_geom']
         if len(self.result) == 0:
             print(self.data)
