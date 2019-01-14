@@ -13,7 +13,7 @@ def export(header, data, filename):
     :param data: A sequence of dictionaries each of length k, where each item in a row in the relation.
     :return: True if successful, otherwise False
     """
-    assert type(data) is list and len(data) > 0  # Data must be a list containing data.
+    assert type(data) is list and len(data) > 0, "No path found"  # Data must be a list containing data.
     assert type(header) is list and len(header) > 0  # Header must be a list containing data.
 
     for row in data:
