@@ -106,7 +106,7 @@ def viterbi(network, scores, distance_score=lambda d: d ** 2):
             :return: score
             """
             if not active_path[0]:  # If there was a path that led to a dead end, the probability is zero.
-                #print('WARNING: found path of length {}'.format(len(active_path)))
+                # print('WARNING: found path of length {}'.format(len(active_path)))
                 return 0
             pr_active_path = active_path[1]
             pr_candidate = observation_candidate[1]
@@ -120,6 +120,7 @@ def viterbi(network, scores, distance_score=lambda d: d ** 2):
             :return: A list of vertex IDs
             """
             if not path:  # If there was a path that led to a dead end, return a path with no items.
+                print('WARNING: dead end.')
                 return list()
             return path[:-1] + network.find_vertex_path(path[-1], observation_candidate[0], False)[0]
 
@@ -134,7 +135,7 @@ def viterbi(network, scores, distance_score=lambda d: d ** 2):
         utils.print_progress(len(scores), prefix='searching for most probable route')
         possible_paths = [find_next_step((candidate, score), possible_paths)
                           for candidate, score in candidate_map.items()]
-        sum_of_scores = sum(path[1] for path in possible_paths)
+        sum_of_scores = sum(path[1] for path in possible_paths) + 0.001
         possible_paths = [(path[0], path[1] / sum_of_scores) for path in possible_paths]
 
     """ Return the most probable path. """
