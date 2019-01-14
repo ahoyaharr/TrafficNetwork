@@ -24,22 +24,70 @@
 
 
 ## Flow Chart
-![Alt text](https://github.com/ahoyaharr/TrafficNetwork/blob/master/util/images/TrafficNetwork.png "Title")
+![alt text](util/images/flowchart.png "A flowchart demonstrating the
+use of and relationships between main files in this repo.")
 
 ## Usage Instructions
-Extract junction and section information from an Aimsun model by running `~/data/aimsun_feature_extraction.py`. 
 
-Import the data by calling `utils.decode_JSON`.
+##### Preparing the Data
+Place data files in the folder `util/to_cluster`. Run `clustering.py`.
+Clustered files will be written to this folder, with 'clustered_'
+appended to the start of the file name.
 
-Construct a `TrafficNetwork` by calling `constructNetwork.TrafficNetwork(junction_data, section_data)`.
+Import the clustered data file as a delimited text layer in QGIS. Clip
+the file using `taz.shp` found on Box at `I-210 Routing/TestShapes/taz`.
+To clip in QGIS, select the `Processing` menu at the top, and choose
+`Toolbox` - a new menu will open. Under `Vector overlay`, select
+`Clip`. Choose the clustered data layer as the input layer and the
+taz as the clip layer, then run.
 
-##### Map Matching, Path Inference
-Example usage: import a data set located at  `~/data/probe_data.csv` and return the inferred path.
+Once the clip has been completed, you should see a new layer called
+`Clipped` appear in the Layers panel. Right click on the layer, select
+`export`, then `Save features as...`, which should prompt a new window.
+Browse to select a location and file name to save the clipped data as.
+This is the file that you will later run map matching and path
+inference on.
+
+##### Constructing the Network
+If changes have been made to the network, extract updated junction and
+section information from an Aimsun model using
+`~/data/aimsun_feature_extraction.py`. Make sure you edit the 'path'
+variable to reflect the path to your 'data' directory. Then, add the
+file as a script and run it in Aimsun.
+
+Import the junction and section data by calling `utils.decode_JSON`. Use
+this to construct a `TrafficNetwork` by calling
+`constructNetwork.TrafficNetwork()` on the junction and section data.
+
+Notice that nodes are placed at each junction, so they are not
+necessarily evenly spaced. Call `network.equalize_node_density()` to
+remedy this, passing in the maximum allowed distance and angle change
+as a threshold at which a new point will be added. We recommend using
+300 feet and 30 degrees.
+
+Example:
 ```python
 junction_map, section_map = util.utils.decode_json()  # decode the .json files containing network information
 network = TrafficNetwork(junction_map, section_map)  # construct the logical network
-data = util.Shapes.DataPoint.convert_dataset(filename='probe_data.csv', subdirectory='data')  # import the data set
-print('network constructed. number of nodes:', network.equalize_node_density(300, 30, greedy=True))
+print('network constructed. number of nodes:', network.equalize_node_density(300, 30))
+```
+
+##### Map Matching and Path Inference
+
+Place the file of data you would like to run map matching and path
+inference on into the 'data' subdirectory. Call
+`util.Shapes.DataPoint.convert_dataset` on a string of the filename. If
+the data is stored in a different location, pass in the subdirectory
+name as well.
+
+Map match the data with the previously constructed network by calling
+`mapMatch.MapMatch()` and passing in the network, a tree structure which
+can be searched by nearest distance, a scoring function, an evaluation
+function, and the previously imported data.
+
+Example:
+```python
+data = util.Shapes.DataPoint.convert_dataset('probe_data.csv')  # import the data set
 
 # construct the map matching object. matching happens on construction.
 mm = mapMatch.MapMatch(network,
@@ -47,7 +95,20 @@ mm = mapMatch.MapMatch(network,
                        map_match.scoring_fns.exp_distance_heading,
                        map_match.evaluation_fns.viterbi,
                        data)
+```
 
+To infer paths for a data set containing multiple trips, use `batch_process()`,
+passing in the data, a filename for the export, a score function, and
+an evaluation function.
+
+Example:
+```python
+data = util.Shapes.DataPoint.convert_dataset('probe_data.csv')  # import the data set
+
+mm.batch_process(data,
+                 'matched_10_01_17',
+                 score=map_match.scoring_fns.exp_distance_heading,
+                 evaluation=map_match.evaluation_fns.viterbi)
 ```
 
 ##### Export
@@ -64,7 +125,10 @@ header, data = network.export_edges()
 util.export.export(header, data, 'edges')
 ```
 
-A map matching object can export the candidates with their scores, and the inferred path.
+A map matching object can export the candidates with their scores, and
+the inferred path. Note that if you are using `batch_process` to match
+and infer paths for a dataset with multiple trips, exports are already
+handled for you. Each trip will be exported as a separate file.
 
 ```python
 # convert the result into an exportable format
@@ -77,8 +141,8 @@ util.export.export(path_header, path_result, 'path')
 util.export.export(match_header, match_result, 'candidates')
 ```
 
-##### Visualising Candidates/Paths
+##### Visualizing Candidates/Paths
 
-To visualise exported candidates and paths, import the exported file into a PostGIS enabled database.
+To visualize exported candidates and paths, import the exported file into a PostGIS enabled database.
 
 Create a new database connection in QGIS, and import the line geometry column as a vector layer.
