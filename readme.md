@@ -144,5 +144,35 @@ util.export.export(match_header, match_result, 'candidates')
 ##### Visualizing Candidates/Paths
 
 To visualize exported candidates and paths, import the exported file into a PostGIS enabled database.
+Using the query tool, create a table using:
+```SQL
+CREATE TABLE path_table_name
+    (
+      lon1 float,
+      lat1 float,
+      lon2 float,
+      lat2 float,
+      line_geom geometry
+    );
+```
+Refresh, then find this new table in the browser menu on the left.
+Right click on it, and select Import/Export. Browse to find the file to
+import, and choose 'yes' for Header.
 
-Create a new database connection in QGIS, and import the line geometry column as a vector layer.
+To visualize matches, follow the same instructions as above except with
+the following SQL query:
+```SQL
+CREATE TABLE matches_table_name
+    (
+      LON1 float,
+      LAT1 float,
+      LON2 float,
+      LAT2 float,
+      SCORE float,
+      GPS geometry,
+      MATCH geometry,
+      LINE geometry
+    )
+```
+Create a new database connection in QGIS if needed, and import the line
+geometry column as a vector layer.
