@@ -87,7 +87,7 @@ class DataPoint(Point):
                 'lat': self.lat, 'bearing': self.bearing}
 
     @staticmethod
-    def convert_dataset(subdirectory, filename):
+    def convert_dataset(filename, subdirectory='data'):
         """
         Converts a CSV of HERE probe data into a list of DataPoints.
         :param subdirectory:
