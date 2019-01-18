@@ -34,8 +34,10 @@ Place data files in the folder `util/to_cluster`. Run `clustering.py`.
 Clustered files will be written to this folder, with 'clustered_'
 appended to the start of the file name.
 
-Import the clustered data file as a delimited text layer in QGIS. Clip
-the file using `taz.shp` found on Box at `I-210 Routing/TestShapes/taz`.
+Import the clustered data file as a delimited text layer in QGIS, using
+ Layer -> Add Layer -> Delimited Text Layer.
+Download all files found on Box at `I-210 Routing/TestShapes/taz` and
+add `taz.shp` as a Vector Layer in QGIS.
 To clip in QGIS, select the `Processing` menu at the top, and choose
 `Toolbox` - a new menu will open. Under `Vector overlay`, select
 `Clip`. Choose the clustered data layer as the input layer and the
@@ -44,6 +46,7 @@ taz as the clip layer, then run.
 Once the clip has been completed, you should see a new layer called
 `Clipped` appear in the Layers panel. Right click on the layer, select
 `export`, then `Save features as...`, which should prompt a new window.
+Select CSV to be the Format in the dropdown at the top of the menu.
 Browse to select a location and file name to save the clipped data as.
 This is the file that you will later run map matching and path
 inference on.
@@ -143,8 +146,10 @@ util.export.export(match_header, match_result, 'candidates')
 
 ##### Visualizing Candidates/Paths
 
-To visualize exported candidates and paths, import the exported file into a PostGIS enabled database.
-Using the query tool, create a table using:
+To visualize exported candidates and paths, we will import the exported file into a PostGIS enabled database.
+
+In PgAdmin, right click on the database and select 'Query Tool'. Using
+ the query tool, create a table using:
 ```SQL
 CREATE TABLE path_table_name
     (
@@ -164,10 +169,10 @@ the following SQL query:
 ```SQL
 CREATE TABLE matches_table_name
     (
-      LON1 float,
-      LAT1 float,
-      LON2 float,
-      LAT2 float,
+      GPS_LON float,
+      GPS_LAT float,
+      MATCH_LON float,
+      MATCH_LAT float,
       SCORE float,
       GPS geometry,
       MATCH geometry,
