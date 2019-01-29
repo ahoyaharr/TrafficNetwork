@@ -155,8 +155,10 @@ CREATE TABLE path_table_name
     (
       lon1 float,
       lat1 float,
+      id1 int,
       lon2 float,
       lat2 float,
+      id2 int,
       line_geom geometry
     );
 ```
@@ -169,14 +171,17 @@ the following SQL query:
 ```SQL
 CREATE TABLE matches_table_name
     (
-      GPS_LON float,
-      GPS_LAT float,
-      MATCH_LON float,
-      MATCH_LAT float,
-      SCORE float,
-      GPS geometry,
-      MATCH geometry,
-      LINE geometry
+        GPS_LON float,
+        GPS_LAT float,
+        GPS_HEADING float,
+        MATCH_LON float,
+        MATCH_LAT float,
+        MATCH_HEADING float,
+        TIMESTAMP timestamp without time zone,
+        SCORE float,
+        GPS_POINT geometry,
+        MATCH_POINT geometry,
+        LINE geometry
     )
 ```
 Create a new database connection in QGIS if needed, and import the line
