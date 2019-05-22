@@ -124,9 +124,12 @@ class MapMatch:
         if evaluation:
             self.evaluation = evaluation
 
+        num_trips = 0
+
         if self.score and self.evaluation:
             print('beginning batch process on {0} data sets...'.format(len(data_items)))
             for trip, data in enumerate(data_items):
+                num_trips +=1
                 if not data:
                     print("no data being passed in ")
                     print("trip: ", trip)
@@ -134,16 +137,19 @@ class MapMatch:
                 if len(data) < min_path:
                     print("too few points in trip", trip)
                     continue
-                self.update_data(data)
                 try:
-                    filename = date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
-                except IndexError:
-                    filename = date + "_no_result"
-                if len(self.result) == 0:
+                    self.update_data(data)
+                    filename = "trip_" + str(num_trips) + "_" + date + "_" + self.network.node_id[self.result[0]] + "_to_" + self.network.node_id[self.result[-1]]
+                except:
+                    print("excepted out")
                     print(self.data)
+                    continue
+                # if len(self.result) == 0:
+                #     print(self.data)
                 file_export(*self.export_matches(), filename + "_matches")
                 file_export(*self.export_path(), filename + "_path")
                 print('\tfinished {0}...'.format(filename))
+                print('completed {0} trips'.format(num_trips))
         self.data, self.matches, self.result, self.score, self.evaluation = cache_data  # Restore at end
 
     def export_matches(self):
